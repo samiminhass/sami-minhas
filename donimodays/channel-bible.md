@@ -25,6 +25,14 @@ character, not just the topic.
 
 ## Characters
 
+![Donimo, Pip, and Old Tock](images/characters-lineup.png)
+
+Use these renders as image references in your AI tool:
+
+- `images/donimo-and-pip.png` is the main Donimo reference, in vertical format.
+- `images/donimo-turnaround.png` shows Donimo from the front, three-quarter, side, and back.
+- `images/characters-lineup.png` shows all three characters together.
+
 Paste the **prompt block** of each character into every image or video prompt,
 word for word. Never change the wording. This is what keeps characters consistent.
 
