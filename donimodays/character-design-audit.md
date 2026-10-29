@@ -269,3 +269,46 @@ upper lids also rotated backward into the head. Both are fixed in stage 3. The s
   posed with controls. Stage 5 turns these parameters into real rig controls and
   shape keys.
 - **Contrast with the world** still waits on stage 4 materials and lighting.
+
+---
+
+## Stage 4 materials and lighting results (version 4)
+
+Built by `blender/stage4_materials.py`. Renders are in `blender/renders/stage4`.
+
+### Materials
+
+| Character | Material contrast | Glow, and what it means |
+| --- | --- | --- |
+| Morrow | Warm matte ivory shell with gentle colour variation and a little subsurface warmth, against a soft dark felt-like face and joints. Aged gold inlay in the repaired seams. Ember-toned ribbon crest. | The ember only. It is Morrow's feelings, and it lights the inside of the cavity. |
+| Vesper | Matte midnight-blue mantle against a muted plum interior. Dark slate mask with subtle stone grain. Worn brass with uneven roughness on the halo, fragments, and one trim edge only. Muted plum hands, so gestures read against the mantle. | None. Vesper has no light of its own. Its brass only shines by reflecting others. |
+| Nix | Near-black violet satin with a restrained cool sheen on the shadow side. Pale matte eyes. | The coral inner edge and the bead. The bead is its attention. |
+
+### Lighting
+
+- **Neutral studio first.** It uses a key, fill, and rim light on a plain floor, with
+  exposure lowered so Morrow's ivory keeps its highlight detail.
+- **Then one atmospheric dream-world shot.** It has an indigo-to-rose sky gradient,
+  a dark plum ground, a distant broken crescent moon, and drifting dream shards. The
+  lights are cool moonlight from behind, a low warm key, and a dim plum fill.
+  There is no fog or bloom.
+
+### Checks
+
+- **Value hierarchy survives colour.** The studio lineup converted to luminance
+  still reads light, dark, darkest, in that order.
+- **Eyes stay readable without glow** in every expression, including Vesper's dark
+  mask and Nix's near-black body.
+- **Glow stays rare.** Three emitters in the whole cast, each with a meaning.
+
+### Still open
+
+- **Under the bright studio, Vesper's mantle reads deep blue** rather than
+  blue-black. In the dream world it reads correctly. Exposure was lowered once, and
+  could go further if wanted.
+- **The panel interiors are not plum.** Only the inner core is. Giving each
+  panel's inside face its own material needs a second material slot.
+- **The dream world's far ground falls into a dark band** at the horizon. A curved
+  backdrop or distant terrain would fix it.
+- **Renders use Cycles.** The real-time Eevee renderer has not been tested.
+- **Nothing is rigged yet.** That is stage 5.
