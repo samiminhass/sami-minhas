@@ -222,3 +222,50 @@ even when it is off screen. These are design notes for whoever builds the sound.
 
 Keep each sound short and quiet enough to sit under dialogue and music. One sound
 per character is enough. More becomes noise.
+
+---
+
+## Stage 3 refinement results (version 3)
+
+Built by `blender/stage3_refinement.py`. Renders are in `blender/renders/stage3`.
+Everything is still grayscale. No texture, fog, or glow was used to hide a shape.
+
+### What was refined
+
+| Area | Refinement |
+| --- | --- |
+| Morrow's shell | Gentle worn-stone surface variation, plus two large repaired seams. One runs into the cavity, one runs down the back. |
+| Morrow's cavity | The rim is softened, so it reads as a carved opening rather than a boolean cut. |
+| Morrow's face | Lower eyelids added. The face frame is fixed, so brows, lids, and mouth sit where they should. The mouth is now a light line that reads on the dark face. |
+| Hands, all | Jointed tapering fingers with round tips, a cupped palm, and an opposable thumb. |
+| Vesper's mantle | The big crescent panel now sweeps diagonally across the front. The stray hip panel is gone. Worn brass trim runs along that one leading edge only. |
+| Vesper's arms | Flared sleeve shells over the upper arms echo the mantle panels. |
+| Vesper's face | Lower lids added, and the upper lids now close in the right direction. |
+| Vesper's fragments | Only the broken ends are jagged, so they read as halo pieces instead of rubble. |
+| Nix's body | Rebuilt as a smooth pebble with a lens-shaped cross-section: thin edges, full belly. Edge-on, it is now a soft sliver instead of a slab. |
+| Nix's eyes | The lids are cut directly into the eye shapes, so they never stick out past the body. |
+
+### Expression range, tested
+
+| Character | Expressions that now read without dialogue or glow |
+| --- | --- |
+| Morrow | Delight, worry, determination, embarrassment |
+| Vesper | Concern, dry humour, fluster (uneven fragment spacing) |
+| Nix | Mischief, innocence, embarrassment (turned edge-on) |
+
+### A bug worth knowing about
+
+Stage 2 built Morrow's face frame upside down. In the stage 2 renders, the arc above
+Morrow's eyes was actually its mouth, and the bars below were its brows. Vesper's
+upper lids also rotated backward into the head. Both are fixed in stage 3. The stage
+2 script is left as it was, as a record.
+
+### Still open
+
+- **Vesper's front view** is improved by the diagonal crescent panel, but it still
+  reads as a tall robed figure at thumbnail size.
+- **Vesper's fragments** are blocky. They could be thinner and more elegant.
+- **Nothing is rigged.** Every pose and expression is rebuilt from parameters, not
+  posed with controls. Stage 5 turns these parameters into real rig controls and
+  shape keys.
+- **Contrast with the world** still waits on stage 4 materials and lighting.
