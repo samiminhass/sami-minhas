@@ -2,14 +2,14 @@
 
 ## The big idea
 
-Every video is **one day in the life of Donimo**, a small, curious robot who wants to
+Every video is **one day in the life of Donimo**, a living domino tile who wants to
 understand everything about Earth, people, and the future.
 
 This one character ties every topic together. Comedy, motivation, mystery, future,
 exploration, and daily news all become "Donimo's days". Viewers subscribe for the
 character, not just the topic.
 
-**Tagline:** *Every day is a new adventure.*
+**Tagline:** *One push. Big day.*
 
 ## Format rules
 
@@ -25,52 +25,111 @@ character, not just the topic.
 
 ## Characters
 
-![Donimo, Pip, and Old Tock](images/characters-lineup.png)
+![Donimo, Pip, and Old Tock](images/cast-hero.png)
 
-Use these renders as image references in your AI tool:
+### The design idea
 
-- `images/donimo-and-pip.png` is the main Donimo reference, in vertical format.
-- `images/donimo-turnaround.png` shows Donimo from the front, three-quarter, side, and back.
-- `images/characters-lineup.png` shows all three characters together.
+**donimodays sounds like "domino days".** So the whole world is built on dominoes:
+one small push starts a chain reaction. Every episode is one domino falling into the
+next. That gives the channel a symbol nobody else has, and a story engine that fits
+every topic: one small action, big consequences.
 
-Paste the **prompt block** of each character into every image or video prompt,
-word for word. Never change the wording. This is what keeps characters consistent.
+### Visual style: "Dusk Lo-Fi"
+
+The channel always looks like the magic hour just after sunset: soft, warm, a little
+dreamy. Characters feel like premium vinyl collectible toys.
+
+| Element | Rule |
+| --- | --- |
+| Sky | Deep indigo at the top, fading through plum and rose to peach at the horizon |
+| Light | Warm sunset key light from behind, cool blue fill from the front, pink rim light on edges |
+| Glow | Only eyes, pips, and Pip glow. Everything else stays matte |
+| Materials | Matte porcelain, soft knit fabric, brushed brass. Never shiny plastic |
+| Finish | Light film grain and a soft dark vignette on every frame |
+| Brand motif | A line of cream and navy dominoes somewhere in the background |
+
+| Color | Hex | Used for |
+| --- | --- | --- |
+| Ink navy | `#1B1F3B` | Donimo's back, limbs, deep shadows |
+| Warm cream | `#E9D6B8` | Donimo's face, sneakers |
+| Coral | `#FF6B57` | Beanie, accents, mood pips |
+| Mint glow | `#6FF7D2` | Donimo's eyes, Pip |
+| Brass gold | `#D8A657` | Divider line, Old Tock |
+| Olive | `#55613A` | Old Tock's coat |
+| Dusk plum | `#3A2547` | Ground and shadows |
 
 ### Donimo (main character)
 
-- **Personality:** curious, brave, a little clumsy, always optimistic.
-- **Voice:** young, cheerful, slightly robotic.
-- **Catchphrase:** "New day, new adventure!"
+![Donimo expressions](images/donimo-expressions.png)
+
+Donimo is a **living domino tile** who woke up one morning and decided to explore
+the world, one day at a time.
+
+- **Look:** a tall rounded domino tile. Cream porcelain front, ink-navy back speckled
+  with tiny stars. A thin brass line divides the face. The top half has two glowing
+  mint eyes set into dark sockets. The bottom half has glowing pips.
+- **Signature detail, the mood pips:** the pips on Donimo's belly change with his mood.
+  One pip means shocked, two means sleepy or sad, three means calm, six means
+  hyped. Eye shapes change too: dots, happy arcs, shocked rings, sleepy lines.
+- **Outfit:** a slouchy coral knit beanie tilted to one side, cream sneakers with
+  coral soles.
+- **Personality:** curious, brave, a little clumsy. He tips over when surprised,
+  like a domino, then catches himself.
+- **Catchphrase:** "One push. Big day."
 
 Prompt block:
 
-> Donimo, a small cute round robot about knee height, glossy teal body, large
-> round head with a black glass face screen showing two big glowing white oval
-> eyes, short orange antenna with a glowing yellow bulb on top, small round arms
-> and stubby legs, tiny orange backpack, stylized 3D animated character
+> Donimo, a cute living domino tile character, tall rounded rectangle body, matte
+> warm cream porcelain front and ink navy back with tiny star speckles, thin brushed
+> brass line across the middle of the face, two large glowing mint-green round eyes
+> set in dark circular sockets in the upper half, glowing coral domino pips on the
+> lower half, soft pink blush cheeks, slouchy coral knit beanie with cream pom-pom
+> tilted to one side, slim ink navy arms and legs, cream mitten hands, cream
+> sneakers with coral soles, designer vinyl toy aesthetic
 
-### Pip (sidekick, comedy relief)
+### Pip (sidekick)
 
-- **Personality:** hyper, loyal, panics easily. Speaks only in beeps.
-- **Role:** reacts to everything. The audience laughs through Pip.
-
-Prompt block:
-
-> Pip, a tiny flying lemon-yellow drone the size of a tennis ball, round body,
-> one big blue camera eye, two small spinning propellers on top, stylized 3D
-> animated character
-
-### Old Tock (mentor, motivation episodes)
-
-- **Personality:** calm, wise, warm, speaks slowly.
-- **Voice:** deep, gentle, elderly.
+Pip is **one of Donimo's pips that escaped** and came alive: a tiny glowing orb that
+floats beside him, trailing sparkles. It never speaks. It blinks, changes color, and
+zips around. Mint means happy, amber means curious, red means danger.
 
 Prompt block:
 
-> Old Tock, an old wise robot shaped like a turtle, weathered bronze metal shell
-> with green moss and tiny flowers growing on it, round brass clock face on his
-> chest, kind glowing amber eyes, small round spectacles, stylized 3D animated
-> character
+> Pip, a tiny floating glowing orb the size of a tennis ball, clear glass shell with
+> a bright mint-green light core inside, two small dark dot eyes, a short trail of
+> fading glowing sparkles behind it, soft light bloom
+
+![Old Tock and Pip](images/old-tock-and-pip.png)
+
+### Old Tock (mentor)
+
+Old Tock is a **wandering gentleman with an antique pocket watch for a head**. He has
+seen every day there ever was, and he knows that every moment counts.
+
+- **Look:** a brass pocket-watch head with a cream clock face, two softly glowing
+  amber eyes, and clock hands that move with his expressions. A crown and ring sit on
+  top like a tiny hat. He wears a long olive wool coat with brass buttons, a dusty
+  rose scarf, dark trousers, worn leather boots, and carries a thin cane.
+- **Personality:** calm, kind, speaks slowly. His clock hands tick when he thinks.
+- **Catchphrase:** "Every second is a domino."
+
+Prompt block:
+
+> Old Tock, a tall gentle character with an antique brass pocket watch for a head,
+> cream clock face with fine tick marks, two softly glowing amber eyes on the clock
+> face, clock hands in the center, small brass crown and ring on top of the head,
+> long olive green wool coat with brass buttons, dusty rose knit scarf, dark navy
+> trousers, worn brown leather boots, thin dark wooden cane, designer vinyl toy
+> aesthetic
+
+### Style line for every prompt
+
+Add this to the end of every image and video prompt:
+
+> stylized 3D animation, designer vinyl toy aesthetic, dusk lo-fi mood, magic hour
+> after sunset, indigo to peach gradient sky, warm rim light, soft volumetric haze,
+> gentle glow on eyes only, matte materials, subtle film grain, shallow depth of
+> field, cinematic, vertical 9:16
 
 ## Series
 
