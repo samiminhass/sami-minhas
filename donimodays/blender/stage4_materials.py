@@ -852,42 +852,62 @@ def setp(bsdf, name, val):
         bsdf.inputs[name].default_value = val
 
 # part -> material definition. colours are linear RGB.
+def hx(h):
+    """sRGB hex -> linear RGB tuple."""
+    h = h.lstrip("#")
+    c = [int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+    return tuple(x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4 for x in c)
+
+# PALETTE v2 - "moonlit porcelain and ink".
+# Quiet desaturated bases, one shared family of warm light accents (amber, antique gold, ember rose).
+PAL = {
+    # Morrow - curious, warm, fragile, brave: porcelain with a celadon-ink glaze face
+    "porcelain": "#ECE3D3", "porcelain_dk": "#D6C8B2", "celadon_ink": "#22403E", "celadon_joint": "#2A4846",
+    "pearl": "#F3EEE4", "pupil": "#0D1414", "apricot": "#E59B74", "amber": "#FFB04A", "kintsugi": "#C9A15E",
+    # Vesper - patient, formal, melancholy: ink slate, heather mauve, antique gold, warm graphite stone
+    "ink_slate": "#1B2130", "ink_slate_lt": "#232A3A", "heather": "#5B4757", "antique_gold": "#B08A52",
+    "antique_gold_dk": "#7A5F3A", "graphite": "#2D2A2A", "graphite_lt": "#3D3938", "vesper_pearl": "#E6E2DA",
+    "dove_mauve": "#8E8089", "ink_deep": "#151A25",
+    # Nix - theatrical, nosy, secretly shy: eclipse aubergine with an oil-slick sheen and an ember-rose edge
+    "eclipse": "#1D1424", "eclipse_fin": "#22182A", "lilac_pearl": "#E8E3EE", "ember_rose": "#FF7A5C", "bead": "#FFE3C8",
+    # shared dream world
+    "dream_glass": "#C9C3DE", "night_ground": "#191522", "night_ground_dk": "#110E18",
+}
+P = {k: hx(v) for k, v in PAL.items()}
+
 MATDEF = {
-    # Morrow: warm ivory and ember
-    "mor_shell": dict(color=(0.80, 0.72, 0.60), color2=(0.66, 0.57, 0.45), noise=55, rough=0.55, sss=0.12, sss_r=(0.9, 0.5, 0.3), coat=0.08),
-    "mor_face": dict(color=(0.055, 0.04, 0.035), rough=0.85, sheen=0.6, sheen_tint=(0.55, 0.45, 0.4)),
-    "mor_lid": dict(color=(0.065, 0.048, 0.04), rough=0.85, sheen=0.6, sheen_tint=(0.55, 0.45, 0.4)),
-    "mor_joint": dict(color=(0.07, 0.05, 0.045), rough=0.8, sheen=0.5),
-    "mor_eye": dict(color=(0.86, 0.82, 0.74), rough=0.22, coat=0.6),
-    "mor_pupil": dict(color=(0.015, 0.01, 0.01), rough=0.08, coat=1.0),
-    "mor_mouth": dict(color=(0.74, 0.47, 0.3), rough=0.5),
-    "mor_ember": dict(color=(1.0, 0.5, 0.12), emit=(1.0, 0.48, 0.12), emit_s=9.0),
-    "mor_crest": dict(color=(0.78, 0.36, 0.17), rough=0.6, sheen=0.7, sheen_tint=(1.0, 0.7, 0.5), sss=0.25, sss_r=(1.0, 0.4, 0.2)),
-    "mor_seam": dict(color=(0.78, 0.55, 0.27), metal=1.0, rough=0.33),
-    "dream": dict(color=(0.62, 0.6, 0.82), rough=0.15, trans=0.55, coat=0.6),
-    # Vesper: deep blue-black, aged brass, muted plum
-    "ves_mantle": dict(color=(0.012, 0.018, 0.045), rough=0.72, sheen=0.08, sheen_tint=(0.4, 0.45, 0.7)),
-    "ves_collar": dict(color=(0.016, 0.024, 0.055), rough=0.72, sheen=0.08, sheen_tint=(0.4, 0.45, 0.7)),
-    "ves_inner": dict(color=(0.14, 0.055, 0.11), rough=0.8, sheen=0.4),
-    "ves_brass": dict(color=(0.6, 0.42, 0.19), color2=(0.33, 0.24, 0.12), noise=30, metal=1.0, rough=0.36, rough2=0.6, aniso=0.4),
-    "ves_trim": dict(color=(0.52, 0.37, 0.17), color2=(0.3, 0.22, 0.11), noise=30, metal=1.0, rough=0.42),
-    "ves_mask": dict(color=(0.045, 0.048, 0.058), color2=(0.03, 0.03, 0.038), noise=70, rough=0.7, bump=0.25),
-    "ves_lid": dict(color=(0.05, 0.052, 0.062), rough=0.7),
-    "ves_brow": dict(color=(0.075, 0.075, 0.085), rough=0.65),
-    "ves_eye": dict(color=(0.78, 0.8, 0.83), rough=0.2, coat=0.6),
-    "ves_arm": dict(color=(0.02, 0.026, 0.05), rough=0.7),
-    "ves_hand": dict(color=(0.12, 0.08, 0.12), rough=0.6, sheen=0.3),
-    "ves_neck": dict(color=(0.02, 0.02, 0.03), rough=0.8),
-    # Nix: near-black violet with a narrow luminous coral edge
-    "nix_body": dict(color=(0.018, 0.008, 0.03), rough=0.34, sheen=0.12, sheen_tint=(0.6, 0.65, 1.0), coat=0.2),
-    "nix_fin": dict(color=(0.022, 0.01, 0.036), rough=0.34, sheen=0.12, sheen_tint=(0.6, 0.65, 1.0), coat=0.2),
-    "nix_eye": dict(color=(0.8, 0.77, 0.88), rough=0.4),
-    "nix_edge": dict(color=(1.0, 0.36, 0.26), emit=(1.0, 0.33, 0.24), emit_s=12.0),
-    "nix_bead": dict(color=(1.0, 0.78, 0.66), emit=(1.0, 0.75, 0.62), emit_s=11.0),
+    "mor_shell": dict(color=P["porcelain"], color2=P["porcelain_dk"], noise=55, rough=0.5, sss=0.12, sss_r=(0.9, 0.55, 0.4), coat=0.12),
+    "mor_face": dict(color=P["celadon_ink"], rough=0.62, coat=0.35, sheen=0.25, sheen_tint=(0.7, 0.9, 0.85)),
+    "mor_lid": dict(color=P["celadon_ink"], rough=0.62, coat=0.35),
+    "mor_joint": dict(color=P["celadon_joint"], rough=0.65, coat=0.2),
+    "mor_eye": dict(color=P["pearl"], rough=0.2, coat=0.7),
+    "mor_pupil": dict(color=P["pupil"], rough=0.08, coat=1.0),
+    "mor_mouth": dict(color=P["apricot"], rough=0.45),
+    "mor_ember": dict(color=P["amber"], emit=P["amber"], emit_s=9.0),
+    "mor_crest": dict(color=P["apricot"], rough=0.55, sheen=0.5, sheen_tint=(1.0, 0.8, 0.65), sss=0.3, sss_r=(1.0, 0.5, 0.3)),
+    "mor_seam": dict(color=P["kintsugi"], metal=1.0, rough=0.3),
+    "dream": dict(color=P["dream_glass"], rough=0.12, trans=0.6, coat=0.6),
+    "ves_mantle": dict(color=P["ink_slate"], rough=0.74),
+    "ves_collar": dict(color=P["ink_slate_lt"], rough=0.74),
+    "ves_inner": dict(color=P["heather"], rough=0.8, sheen=0.3, sheen_tint=(0.9, 0.8, 0.9)),
+    "ves_brass": dict(color=P["antique_gold"], color2=P["antique_gold_dk"], noise=30, metal=1.0, rough=0.36, rough2=0.62, aniso=0.35),
+    "ves_trim": dict(color=P["antique_gold_dk"], color2=P["antique_gold"], noise=30, metal=1.0, rough=0.45),
+    "ves_mask": dict(color=P["graphite"], color2=P["ink_deep"], noise=70, rough=0.72, bump=0.25),
+    "ves_lid": dict(color=P["graphite"], rough=0.72),
+    "ves_brow": dict(color=P["graphite_lt"], rough=0.66),
+    "ves_eye": dict(color=P["vesper_pearl"], rough=0.2, coat=0.6),
+    "ves_arm": dict(color=P["ink_deep"], rough=0.7),
+    "ves_hand": dict(color=P["dove_mauve"], rough=0.55, sheen=0.2),
+    "ves_neck": dict(color=P["ink_deep"], rough=0.8),
+    "nix_body": dict(color=P["eclipse"], rough=0.3, coat=0.3, film=380),
+    "nix_fin": dict(color=P["eclipse_fin"], rough=0.3, coat=0.3, film=380),
+    "nix_eye": dict(color=P["lilac_pearl"], rough=0.4),
+    "nix_edge": dict(color=P["ember_rose"], emit=P["ember_rose"], emit_s=12.0),
+    "nix_bead": dict(color=P["bead"], emit=P["bead"], emit_s=11.0),
     "nix_guide": dict(color=(0.5, 0.5, 0.5)),
     "floor": dict(color=(0.26, 0.26, 0.27), rough=0.9),
-    "drm_ground": dict(color=(0.06, 0.032, 0.065), color2=(0.035, 0.02, 0.045), noise=6, rough=0.85, bump=0.15),
-    "drm_moon": dict(color=(0.5, 0.44, 0.42), emit=(0.62, 0.52, 0.5), emit_s=0.32, rough=0.9),
+    "drm_ground": dict(color=P["night_ground"], color2=P["night_ground_dk"], noise=6, rough=0.85, bump=0.15),
+    "drm_moon": dict(color=hx("#9EA3B3"), emit=hx("#C9CEDC"), emit_s=0.35, rough=0.9),
 }
 
 def build_material(m, d):
@@ -901,6 +921,8 @@ def build_material(m, d):
     setp(b, "Coat Weight", d.get("coat", 0.0)); setp(b, "Sheen Weight", d.get("sheen", 0.0))
     setp(b, "Sheen Tint", (*d.get("sheen_tint", (1, 1, 1)), 1)); setp(b, "Anisotropic", d.get("aniso", 0.0))
     setp(b, "Transmission Weight", d.get("trans", 0.0))
+    if d.get("film"):   # oil-slick sheen: teal and rose shift on grazing angles
+        setp(b, "Thin Film Thickness", d["film"]); setp(b, "Thin Film IOR", 1.45)
     if d.get("sss"):
         setp(b, "Subsurface Weight", d["sss"]); setp(b, "Subsurface Radius", d.get("sss_r", (1, 1, 1))); setp(b, "Subsurface Scale", 0.01)
     if d.get("emit"):
@@ -928,6 +950,16 @@ def build_material(m, d):
 def apply_color():
     for part, m in MATS.items():
         build_material(m, MATDEF.get(part, dict(color=(0.5, 0.5, 0.5))))
+    if "drm_ground" in MATS:   # distant ground fades into the horizon colour instead of a black band
+        nt = MATS["drm_ground"].node_tree
+        out = next(n for n in nt.nodes if n.type == 'OUTPUT_MATERIAL')
+        bsdf = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+        cd = node(nt, "ShaderNodeCameraData", (-200, 400))
+        mr = node(nt, "ShaderNodeMapRange", (0, 400)); mr.inputs["From Min"].default_value = 3.0; mr.inputs["From Max"].default_value = 14.0
+        em = node(nt, "ShaderNodeEmission", (200, 300)); em.inputs["Color"].default_value = (*hx("#2E2636"), 1); em.inputs["Strength"].default_value = 1.0
+        mx = node(nt, "ShaderNodeMixShader", (450, 100))
+        nt.links.new(cd.outputs["View Distance"], mr.inputs["Value"]); nt.links.new(mr.outputs["Result"], mx.inputs["Fac"])
+        nt.links.new(bsdf.outputs[0], mx.inputs[1]); nt.links.new(em.outputs[0], mx.inputs[2]); nt.links.new(mx.outputs[0], out.inputs[0])
 
 # ================================================================ STAGE 4: atmospheric dream world
 C_DRM = make_coll("ENV_DreamWorld")
@@ -963,18 +995,18 @@ def dream_world():
     wo = node(nt, "ShaderNodeOutputWorld", (100, 0))
     nt.links.new(tc.outputs["Generated"], sx.inputs[0]); nt.links.new(sx.outputs["Z"], cr.inputs["Fac"])
     # world "Generated" z runs from -1 (down) to 1 (up); the horizon is 0
-    cr.color_ramp.elements[0].position = 0.0; cr.color_ramp.elements[0].color = (0.3, 0.11, 0.14, 1)
-    cr.color_ramp.elements[1].position = 0.42; cr.color_ramp.elements[1].color = (0.008, 0.008, 0.03, 1)
-    e = cr.color_ramp.elements.new(0.12); e.color = (0.08, 0.035, 0.09, 1)
+    cr.color_ramp.elements[0].position = 0.0; cr.color_ramp.elements[0].color = (*hx("#7D615F"), 1)
+    cr.color_ramp.elements[1].position = 0.45; cr.color_ramp.elements[1].color = (*hx("#0E1018"), 1)
+    e = cr.color_ramp.elements.new(0.13); e.color = (*hx("#3B3044"), 1)
     nt.links.new(cr.outputs["Color"], bg.inputs["Color"]); bg.inputs["Strength"].default_value = 1.0
     nt.links.new(bg.outputs[0], wo.inputs[0])
     def area(name, loc, energy, size, color, target=(0, 0, 0.5)):
         L = bpy.data.lights.new(name, 'AREA'); L.energy = energy; L.size = size; L.color = color
         o = bpy.data.objects.new(name, L); C_DLG.objects.link(o); o.location = loc
         o.rotation_euler = (Vector(target) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
-    area("DLG_moon_rim", (0.6, 3.2, 2.6), 520, 2.5, (0.62, 0.66, 1.0))       # cool moonlight from behind
+    area("DLG_moon_rim", (0.6, 3.2, 2.6), 520, 2.5, (0.78, 0.8, 1.0))       # cool moonlight from behind
     area("DLG_warm_key", (-1.7, -1.6, 1.2), 160, 1.2, (1.0, 0.72, 0.5))       # low warm dream light
-    area("DLG_plum_fill", (2.0, -1.4, 0.6), 45, 2.0, (0.75, 0.5, 0.8))
+    area("DLG_plum_fill", (2.0, -1.4, 0.6), 45, 2.0, (0.72, 0.62, 0.78))
     return w
 
 STUDIO_WORLD = scene.world
@@ -1012,7 +1044,7 @@ def render_c(path, w, h, samples=96):
 if OUT:
     os.makedirs(OUT, exist_ok=True)
     apply_color(); mode_studio()
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cast_materials_v04.blend"))
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cast_materials_v05_palette2.blend"))
     # studio: each character front and three-quarter
     for key, root, coll in (("morrow", mor, C_MOR), ("vesper", ves, C_VES), ("nix", nix, C_NIX)):
         set_visible([coll]); keep = (root.location.copy(), root.rotation_euler.copy())
@@ -1047,7 +1079,7 @@ if OUT:
     frame(cam, visible_objs([C_STG]), (-0.3, -1, 0.08), lens=45, aspect=9 / 16, margin=1.12)
     render_c(os.path.join(OUT, "staging_vertical_dream.png"), 720, 1280, samples=128)
     mode_studio(); set_visible([C_MOR, C_VES, C_NIX])
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cast_materials_v04.blend"))
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cast_materials_v05_palette2.blend"))
     print("ALL DONE", flush=True)
 else:
     apply_color()

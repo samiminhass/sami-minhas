@@ -312,3 +312,35 @@ Built by `blender/stage4_materials.py`. Renders are in `blender/renders/stage4`.
   backdrop or distant terrain would fix it.
 - **Renders use Cycles.** The real-time Eevee renderer has not been tested.
 - **Nothing is rigged yet.** That is stage 5.
+
+---
+
+## Palette version 2: "moonlit porcelain and ink"
+
+The first stage 4 palette was replaced at the creator's request. It clashed: a
+saturated cornflower blue, candy pink, and bright yellow gold on Vesper, and a muddy
+brown face on Morrow. Each character's accent was also unrelated to the others.
+
+**The new principle.** Quiet, desaturated bases with one shared family of warm
+light accents: amber, antique gold, and ember rose. Each character keeps its own hue
+and value, so the cast feels related without becoming interchangeable. The swatch
+card is `blender/renders/stage4_palette2/palette_card.png`.
+
+| Character | Personality | Palette | Why it fits |
+| --- | --- | --- | --- |
+| Morrow | Curious, warm, fragile, brave | Porcelain `#ECE3D3`, celadon ink face `#22403E`, pearl eyes, apricot mouth and crest `#E59B74`, amber ember `#FFB04A`, kintsugi gold seams `#C9A15E` | Porcelain with a celadon glaze, a classic pairing for something precious and breakable. The cool face makes the warm ember feel even warmer. |
+| Vesper | Patient, formal, melancholy | Ink slate `#1B2130`, heather interior `#5B4757`, antique gold `#B08A52`, graphite stone mask `#2D2A2A`, dove mauve hands `#8E8089` | Formal evening tones. Antique gold instead of bright brass feels old and careful. Heather adds sorrow without becoming sweet. |
+| Nix | Theatrical, nosy, secretly shy | Eclipse aubergine `#1D1424` with an oil-slick thin-film sheen, lilac pearl eyes, ember rose edge `#FF7A5C`, warm bead `#FFE3C8` | Darkest of the cast, but showy. The sheen shifts teal and rose as it moves, like a performer catching stage light. |
+| Dream world | Forgotten dreams | Night ink `#0E1018`, dusk heather `#3B3044`, rose horizon `#7D615F`, moon silver `#9EA3B3`, dream glass `#C9C3DE` | A quiet stage that every character reads against. |
+
+**Checks.** The value hierarchy still holds when the colour lineup is converted to
+luminance: Morrow lightest, Vesper dark, Nix darkest. All eyes read without glow.
+Glow is still limited to the ember, the bead, and Nix's edge.
+
+**This changes the original brief's colour language.** The brief asked for muted
+plum on Vesper and near-black violet with coral on Nix. Those are now heather and
+eclipse aubergine with ember rose. Morrow gains a celadon face it did not have.
+
+**Small notes.** Morrow's face and Nix's body have a light glaze-like gloss. If you
+want them more matte and "beautifully imperfect", lowering their coat setting is a
+one-line change.
