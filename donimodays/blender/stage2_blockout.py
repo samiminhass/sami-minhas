@@ -1,5 +1,6 @@
 """
-STAGE 2 - GRAYSCALE BLOCKOUT for Morrow, Vesper, and Nix.
+STAGE 2, VERSION 2 - UPGRADED GRAYSCALE BLOCKOUT for Morrow, Vesper, and Nix.
+Applies the 13 upgrades from character-design-audit.md.
 Written for Blender 5.2 LTS.
 
 Run inside Blender:  Scripting tab > Open this file > Run Script.
@@ -17,7 +18,7 @@ from mathutils.bvhtree import BVHTree
 OUT = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv else None
 
 # ---------------------------------------------------------------- scene
-scene = bpy.data.scenes.new("CAST_Blockout_v01")
+scene = bpy.data.scenes.new("CAST_Blockout_v02")
 if bpy.context.window:
     bpy.context.window.scene = scene
 else:
@@ -34,6 +35,8 @@ C_MOR = make_coll("BLOCKOUT_Morrow")
 C_VES = make_coll("BLOCKOUT_Vesper")
 C_NIX = make_coll("BLOCKOUT_Nix")
 C_POSE = make_coll("POSE_Relationship")
+C_SIG = make_coll("POSE_Signature")
+C_STG = make_coll("POSE_Staging_Vertical")
 C_CAM = make_coll("BLOCKOUT_Cameras")
 C_LGT = make_coll("BLOCKOUT_Lights")
 C_ENV = make_coll("BLOCKOUT_Studio")
@@ -41,11 +44,11 @@ C_ENV = make_coll("BLOCKOUT_Studio")
 # ---------------------------------------------------------------- materials
 # Every object carries a "part" tag. Material schemes map parts to gray values.
 VALUE = {  # value-hierarchy test: light protagonist, dark-mid companion, darkest creature
-    "mor_shell": .78, "mor_face": .07, "mor_lid": .09, "mor_eye": .86, "mor_pupil": .02,
+    "mor_shell": .78, "mor_face": .06, "mor_lid": .08, "mor_eye": .88, "mor_pupil": .02,
     "mor_mouth": .02, "mor_joint": .10, "mor_ember": .97, "mor_crest": .55,
-    "ves_mantle": .09, "ves_collar": .12, "ves_inner": .2, "ves_brass": .42, "ves_mask": .24, "ves_eye": .62,
-    "ves_lid": .30, "ves_brow": .32, "ves_arm": .10, "ves_hand": .14, "ves_neck": .05,
-    "nix_body": .03, "nix_eye": .72, "nix_fin": .045, "nix_bead": .97, "nix_guide": .5,
+    "ves_mantle": .09, "ves_collar": .12, "ves_inner": .2, "ves_brass": .5, "ves_mask": .07, "ves_eye": .88,
+    "ves_lid": .1, "ves_brow": .13, "ves_arm": .10, "ves_hand": .14, "ves_neck": .05,
+    "nix_body": .03, "nix_eye": .86, "nix_fin": .045, "nix_bead": .97, "nix_edge": .95, "nix_guide": .5,
     "dream": .62, "floor": .32,
 }
 MATS = {}
@@ -217,11 +220,11 @@ def hand(prefix, coll, part, wrist, fwd, side, size, fingers=2, curl=0.4, thick=
 
 # ================================================================ MORROW
 def build_morrow(coll, P=None, tag="MOR"):
-    """Small forward-leaning porcelain seed. P = pose dict (local coordinates)."""
+    """Small forward-leaning porcelain seed. P = pose dict in local coordinates."""
     P = P or {}
     root = new_root(f"{tag}_root", coll)
 
-    # torso: deformed sphere -> asymmetric forward-leaning seed
+    # torso. upgrade 9: lower body, so the legs are shorter and the stance more planted
     bm = bmesh.new()
     bmesh.ops.create_uvsphere(bm, u_segments=64, v_segments=40, radius=1)
     for vt in bm.verts:
@@ -229,94 +232,102 @@ def build_morrow(coll, P=None, tag="MOR"):
         t = (z + 1) / 2
         X = x * 0.165 * (1 - 0.42 * t ** 1.6) - 0.05 * t ** 2 + (0.02 * math.sin(math.pi * t) if x > 0 else 0)
         Y = y * 0.13 * (1 - 0.30 * t ** 1.6) - 0.12 * t ** 2
-        Z = 0.10 + 0.42 * t
+        Z = 0.075 + 0.43 * t
         vt.co = (X, Y, Z)
     torso = finish(f"{tag}_torso", bm, coll, "mor_shell")
 
-    # crescent cavity through the torso (front to back)
-    cav_c = Vector((-0.012, 0.0, 0.255))
+    # upgrade 3: crescent cavity about 30 percent bigger, fatter belly so the ember can grow
+    cav_c = Vector((-0.012, 0.0, 0.235))
     d = Vector((math.cos(math.radians(50)), 0, math.sin(math.radians(50))))
-    a = cylinder("tmpA", coll, "mor_shell", cav_c + Vector((0, -0.4, 0)), cav_c + Vector((0, 0.4, 0)), 0.062, seg=64)
-    b = cylinder("tmpB", coll, "mor_shell", cav_c + d * 0.036 + Vector((0, -0.5, 0)), cav_c + d * 0.036 + Vector((0, 0.5, 0)), 0.052, seg=64)
-    boolean(a, b)                       # a is now a crescent prism
-    boolean(torso, a)                   # cut the crescent through the torso
+    a = cylinder("tmpA", coll, "mor_shell", cav_c + Vector((0, -0.4, 0)), cav_c + Vector((0, 0.4, 0)), 0.08, seg=72)
+    b = cylinder("tmpB", coll, "mor_shell", cav_c + d * 0.05 + Vector((0, -0.5, 0)), cav_c + d * 0.05 + Vector((0, 0.5, 0)), 0.064, seg=72)
+    boolean(a, b)
+    boolean(torso, a)
     torso.data.set_sharp_from_angle(angle=math.radians(45))
-    ember_y = -0.012
-    sphere(f"{tag}_ember", coll, "mor_ember", cav_c - d * 0.039 + Vector((0, ember_y, 0)) + Vector(P.get("ember_lag", (0, 0, 0))), r=0.0155)
+    # ember: about 1.7x larger. 2x would touch the walls, which breaks the "floats without touching" rule
+    sphere(f"{tag}_ember", coll, "mor_ember", cav_c - d * 0.047 + Vector((0, -0.012, 0)) + Vector(P.get("ember_lag", (0, 0, 0))), r=0.026)
 
-    # face patch: soft dark area, slightly off-centre, on the upper front
-    hit, n = raycast(torso, (0.012, -1, 0.405), (0, 1, 0))
+    # face patch, moved higher so it no longer competes with the cavity
+    hit, n = raycast(torso, (0.012, -1, 0.43), (0, 1, 0))
     right = Vector((1, 0, 0)); up = n.cross(right).normalized() * -1
     right = up.cross(n).normalized()
-    F = basis(right, n * -1, up)  # local +Y points into the body; we use -Y as outward
-    out = -n * -1  # outward normal
-    out = n
     face_c = hit - n * 0.006
-    sphere(f"{tag}_face", coll, "mor_face", face_c, (0.074, 0.022, 0.062), rot=basis(right, n, up).to_quaternion())
+    sphere(f"{tag}_face", coll, "mor_face", face_c, (0.074, 0.022, 0.058), rot=basis(right, n, up).to_quaternion())
 
-    # eyes: one slightly larger. eyelids + pupils, no glow.
     gaze = Vector(P.get("gaze", (0, -1, 0))).normalized()
-    lid_close = P.get("lid", 0.30)       # 0 = wide open, 1 = shut
-    for side, r_eye in ((-1, 0.019), (1, 0.0235)):
-        ec = face_c + right * side * 0.029 + up * 0.012 + n * 0.012
-        sphere(f"{tag}_eye_{'L' if side < 0 else 'R'}", coll, "mor_eye", ec, r=r_eye)
+    lid_close = P.get("lid", 0.30)
+    brow = P.get("brow", (0.0, 0.0))   # inner-corner raise per eye: + worried, - determined
+    for i, (side, r_eye) in enumerate(((-1, 0.019), (1, 0.0235))):
+        k = 'L' if side < 0 else 'R'
+        ec = face_c + right * side * 0.029 + up * 0.008 + n * 0.012
+        sphere(f"{tag}_eye_{k}", coll, "mor_eye", ec, r=r_eye)
         pdir = (n * 0.55 + gaze * 0.45).normalized()
-        sphere(f"{tag}_pupil_{'L' if side < 0 else 'R'}", coll, "mor_pupil", ec + pdir * r_eye * 0.78, r=r_eye * 0.42)
-        # eyelid: spherical cap over the top of the eye, rotated down by lid_close
+        sphere(f"{tag}_pupil_{k}", coll, "mor_pupil", ec + pdir * r_eye * 0.78, r=r_eye * 0.42)
         bm = bmesh.new()
         bmesh.ops.create_uvsphere(bm, u_segments=32, v_segments=18, radius=r_eye * 1.14)
         bmesh.ops.delete(bm, geom=[vv for vv in bm.verts if vv.co.z < r_eye * 0.05], context='VERTS')
         tilt = Matrix.Rotation(math.radians(-15 + 85 * lid_close), 4, 'X')
         xform(bm, Matrix.Translation(ec) @ basis(right, n, up) @ tilt)
-        finish(f"{tag}_lid_{'L' if side < 0 else 'R'}", bm, coll, "mor_lid")
-    # restrained mouth: a short soft arc
+        finish(f"{tag}_lid_{k}", bm, coll, "mor_lid")
+        # upgrade 6: brow ridge along the upper edge of the face patch
+        inner = ec - right * side * 0.013 + up * (0.031 + brow[i] * 0.012) + n * 0.004
+        outer = ec + right * side * 0.022 + up * (0.03 - brow[i] * 0.005) + n * 0.002
+        mid = (inner + outer) / 2 + up * 0.005 + n * 0.003
+        curve(f"{tag}_brow_{k}", coll, "mor_face", [inner, mid, outer], 0.0065, [0.9, 1.1, 0.8])
+    # upgrade 6: wider, thicker mouth that reads on a phone
     mc = face_c + up * -0.03 + n * 0.02 + right * 0.004
     smile = P.get("smile", 0.25)
     curve(f"{tag}_mouth", coll, "mor_mouth",
-          [mc - right * 0.014 + up * 0.004 * smile, mc - up * 0.004 * smile, mc + right * 0.014 + up * 0.004 * smile], 0.0028)
+          [mc - right * 0.022 + up * 0.006 * smile, mc - up * 0.006 * smile, mc + right * 0.022 + up * 0.006 * smile], 0.0036)
 
-    # ribbon crest: grows from the back of the head, emotional antenna
+    # ribbon crest
     hit_b, nb = raycast(torso, (-0.02, 1, 0.47), (0, -1, 0))
     crest = P.get("crest", "raised")
-    if crest == "raised":
-        pts = [(0, 0, 0), (0.0, 0.025, 0.045), (-0.005, 0.03, 0.095), (-0.01, 0.005, 0.13), (-0.012, -0.025, 0.125)]
-    elif crest == "curled":
-        pts = [(0, 0, 0), (0, 0.035, 0.01), (0, 0.04, -0.03), (0, 0.015, -0.04)]
-    else:  # relaxed
-        pts = [(0, 0, 0), (0, 0.04, 0.02), (0, 0.08, 0.0), (0, 0.11, -0.03)]
+    pts = {"raised": [(0, 0, 0), (0.0, 0.025, 0.045), (-0.005, 0.03, 0.095), (-0.01, 0.005, 0.13), (-0.012, -0.025, 0.125)],
+           "high": [(0, 0, 0), (0.0, 0.015, 0.06), (-0.004, 0.012, 0.125), (-0.008, -0.005, 0.175), (-0.01, -0.03, 0.19)],
+           "curled": [(0, 0, 0), (0, 0.035, 0.01), (0, 0.04, -0.03), (0, 0.015, -0.04)],
+           "relaxed": [(0, 0, 0), (0, 0.04, 0.02), (0, 0.08, 0.0), (0, 0.11, -0.03)]}[crest]
     pts = [hit_b - nb * 0.004 + Vector(p) for p in pts]
     curve(f"{tag}_crest", coll, "mor_crest", pts, 0.004, [0.55, 1.0, 1.05, 0.75, 0.35][:len(pts)], ribbon=0.026,
           tilts=[0.0, 0.5, 1.0, 1.35, 1.57][:len(pts)])
 
-    # legs + broad soft feet (one foot slightly forward for an uneven stance)
-    for side, fwd in ((-1, -0.012), (1, 0.008)):
-        x = side * 0.062
-        cylinder(f"{tag}_leg_{'L' if side < 0 else 'R'}", coll, "mor_joint", (x, -0.005, 0.035), (x, -0.005, 0.14), 0.03, 0.034)
-        sphere(f"{tag}_foot_{'L' if side < 0 else 'R'}", coll, "mor_shell", (x * 1.08, -0.02 + fwd, 0.022), (0.048, 0.064, 0.023))
+    # upgrade 9: shorter legs, broader feet
+    feet = P.get("feet", (-0.012, 0.008))
+    for side, fwd in zip((-1, 1), feet):
+        k = 'L' if side < 0 else 'R'
+        x = side * 0.064
+        cylinder(f"{tag}_leg_{k}", coll, "mor_joint", (x, -0.005, 0.03), (x, -0.005, 0.11), 0.033, 0.037)
+        sphere(f"{tag}_foot_{k}", coll, "mor_shell", (x * 1.1, -0.022 + fwd, 0.024), (0.058, 0.074, 0.026))
 
-    # long arms that can hug objects to the chest
+    # upgrade 9: tapered arms and bold two-finger hands
     arms = P.get("arms", {})
     for side in (-1, 1):
-        key = 'L' if side < 0 else 'R'
+        k = 'L' if side < 0 else 'R'
         hs, hn = raycast(torso, (side * 1, -0.02, 0.33), (-side, 0, 0))
         sh = hs - Vector((side * 0.012, 0, 0))
-        cylinder(f"{tag}_shoulder_{key}", coll, "mor_joint", sh - Vector((side * 0.01, 0, 0)), sh + Vector((side * 0.012, 0, 0)), 0.02)
-        default = [sh, sh + Vector((side * 0.055, -0.03, -0.09)), sh + Vector((side * 0.045, -0.07, -0.19))]
-        pts = [sh] + [Vector(p) for p in arms.get(key, [])] if key in arms else default
-        curve(f"{tag}_arm_{key}", coll, "mor_shell", pts, 0.021, [1.0, .9, .82][:len(pts)] + [.8] * (len(pts) - 3), kind='NURBS')
-        wrist = pts[-1]
+        cylinder(f"{tag}_shoulder_{k}", coll, "mor_joint", sh - Vector((side * 0.01, 0, 0)), sh + Vector((side * 0.012, 0, 0)), 0.023)
+        default = [sh, sh + Vector((side * 0.06, -0.035, -0.085)), sh + Vector((side * 0.045, -0.075, -0.18))]
+        pts = ([sh] + [Vector(p) for p in arms[k]]) if k in arms else default
+        curve(f"{tag}_arm_{k}", coll, "mor_shell", pts, 0.022, [1.15, .9, .72] + [.7] * (len(pts) - 3))
         fwd = (pts[-1] - pts[-2]).normalized()
         sidev = fwd.cross(Vector((0, 0, 1))).normalized() * (-side)
         if sidev.length < 0.1:
             sidev = Vector((side, 0, 0))
-        hand(f"{tag}_hand_{key}", coll, "mor_shell", wrist, fwd, sidev, 0.058, fingers=2, curl=P.get("curl", 0.45), thick=0.15)
+        hand(f"{tag}_hand_{k}", coll, "mor_shell", pts[-1], fwd, sidev, 0.064, fingers=2, curl=P.get("curl", 0.45), thick=0.21)
+
+    # signature rest pose: Morrow carries a dream fragment hugged to its chest
+    if P.get("carry"):
+        bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=2, radius=0.052)
+        rr = __import__("random").Random(5)
+        for vv in bm.verts:
+            vv.co *= 1 + rr.uniform(-0.18, 0.18)
+        xform(bm, Matrix.Translation(Vector(P["carry"])) @ Matrix.Diagonal((1, 0.6, 1.15, 1)))
+        finish(f"{tag}_carried_dream", bm, coll, "dream", smooth=False)
 
     parent_all(root, coll)
     return root
 
 # ================================================================ VESPER
-H = 1.56  # about 2.6 x Morrow
-
 def catmull(keys, z):
     zs = [k[0] for k in keys]
     if z <= zs[0]: return keys[0][1]
@@ -326,32 +337,41 @@ def catmull(keys, z):
     t = (z - zs[i]) / (zs[i + 1] - zs[i])
     return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t ** 3)
 
-# Tall S-curve: wide stable bell base, narrow waist, a hunched upper mass that
-# leans forward and sits off-centre, closing into a hood with no head inside.
 PROFILE = [(0, .27), (.2, .215), (.5, .14), (.8, .15), (1.02, .2), (1.18, .19), (1.3, .12), (1.38, .05)]
 ZTOP = 1.38
+BEND = [0.0]   # 0 = upright. >0 = deep crescent bow (used for the hero and staging poses)
+
+def zmap(z):
+    """Height after bending: the bow compresses the upper body downward."""
+    s = max(0.0, z) / ZTOP
+    return z - BEND[0] * 0.3 * z * s ** 1.5
+
 def spine(z):
     s = max(0.0, min(z, ZTOP)) / ZTOP
-    return Vector((0.07 * s ** 2.2, 0.05 * math.sin(math.pi * s) - 0.24 * s ** 2.6, 0))
+    return Vector((0.07 * s ** 2.2, 0.05 * math.sin(math.pi * s) - 0.24 * s ** 2.6 - BEND[0] * 0.42 * s ** 2.4, 0))
+
+def body_pt(off, z):
+    """A point at height z on Vesper's bent spine, plus an offset."""
+    return spine(z) + Vector(off) + Vector((0, 0, zmap(z)))
 
 def surf(name, coll, part, phi0, phi1, z0, z1, dr=0.0, hem=0.0, flare=0.0, xoff=0.0, petal=0.0,
-         nu=30, nv=44, closed=False, thick=0.012, slant=0.0):
-    """Curved shell panel around the spine. petal > 0 narrows the panel toward top and bottom."""
+         nu=30, nv=44, closed=False, thick=0.012, slant=0.0, twist=0.0):
+    """Curved shell panel around the spine. petal narrows the ends, twist sweeps it diagonally."""
     bm = bmesh.new()
     grid = []
+    pm, half = (phi0 + phi1) / 2, (phi1 - phi0) / 2
     for i in range(nu + (0 if closed else 1)):
         u = i / nu
         col = []
         for j in range(nv + 1):
             v = j / nv
             w = 1 - petal * (1 - math.sin(math.pi * min(1, v * 1.15))) if petal else 1
-            pm = (phi0 + phi1) / 2
-            phi = math.radians(pm + (phi0 - pm + (phi1 - phi0) * u) * w)
+            phi = math.radians(pm + twist * (v - 0.5) + (2 * u - 1) * half * w) if not closed else math.radians(phi0 + 360 * u)
             zb = z0 + hem * math.sin(math.pi * u)
             z = zb + (z1 - slant * u - zb) * v
             r = catmull(PROFILE, z) + dr + flare * (1 - v) ** 2
             c = spine(z) + Vector((xoff * v, 0, 0))
-            col.append(bm.verts.new((c.x + r * math.cos(phi), c.y + r * math.sin(phi) * 0.86, z)))
+            col.append(bm.verts.new((c.x + r * math.cos(phi), c.y + r * math.sin(phi) * 0.86, zmap(z))))
         grid.append(col)
     n = len(grid)
     for i in range(n if closed else n - 1):
@@ -366,91 +386,89 @@ def surf(name, coll, part, phi0, phi1, z0, z1, dr=0.0, hem=0.0, flare=0.0, xoff=
 
 def build_vesper(coll, P=None, tag="VES"):
     P = P or {}
+    BEND[0] = P.get("bend", 0.0)
     root = new_root(f"{tag}_root", coll)
-    # inner core: the muted-plum interior seen through the gaps between panels
     surf(f"{tag}_core", coll, "ves_inner", 0, 360, 0.02, 1.33, dr=-0.025, closed=True, thick=0, nu=40)
-    # four large crescent-like mantle panels wrapping from back to front (90 = back, 270 = front)
-    surf(f"{tag}_panel_spine", coll, "ves_mantle", 35, 145, 0.0, 1.36, 0.0, 0.04, petal=0.25)
-    surf(f"{tag}_panel_left", coll, "ves_mantle", 115, 255, 0.0, 1.3, 0.014, 0.09, petal=0.35)
-    surf(f"{tag}_panel_right", coll, "ves_mantle", -75, 65, 0.03, 1.24, 0.016, 0.07, petal=0.35)
-    surf(f"{tag}_panel_frontL", coll, "ves_mantle", 212, 288, 0.07, 1.16, 0.03, 0.06, petal=0.45, slant=0.2)
-    surf(f"{tag}_panel_frontR", coll, "ves_mantle", 262, 338, 0.0, 0.92, 0.046, 0.07, petal=0.45, slant=-0.16)
-    # hood: the offset upper mass, open at the front where the face floats
+    # upgrade 4: one big sweeping crescent mantle, two medium panels, one small panel, calm back
+    surf(f"{tag}_panel_back_calm", coll, "ves_mantle", 30, 150, 0.0, 1.36, 0.0, 0.03, petal=0.12)
+    surf(f"{tag}_mantle_crescent", coll, "ves_mantle", 150, 300, 0.0, 1.36, 0.032, 0.05, petal=0.55, twist=-150)
+    surf(f"{tag}_panel_right_med", coll, "ves_mantle", -82, 28, 0.0, 1.15, 0.014, 0.06, petal=0.3)
+    surf(f"{tag}_panel_frontL_med", coll, "ves_mantle", 205, 278, 0.0, 0.78, 0.02, 0.07, petal=0.35)
+    surf(f"{tag}_panel_small", coll, "ves_mantle", 290, 332, 0.32, 0.62, 0.05, 0.02, petal=0.5)
     surf(f"{tag}_hood", coll, "ves_collar", -62, 242, 0.98, 1.42, 0.05, 0.09, flare=0.06, xoff=0.03, petal=0.2)
 
-    # short neck stub inside the hood opening, with an air gap above it
-    nk = spine(1.3)
-    neck_top = nk + Vector((0, -0.07, 1.3))
-    cylinder(f"{tag}_neck", coll, "ves_neck", nk + Vector((0, -0.02, 1.2)), neck_top, 0.05, 0.034)
+    neck_top = body_pt((0, -0.07, 0), 1.3)
+    cylinder(f"{tag}_neck", coll, "ves_neck", body_pt((0, -0.02, 0), 1.2), neck_top, 0.05, 0.034)
 
-    # suspended stone mask, floating in front of the hood
-    tilt = P.get("head_tilt", (6, -8, 0))   # euler degrees: nod, roll, turn. default: slight concerned tilt
+    # upgrade 1: dark carved stone mask with a crescent side profile. eyes are the lightest value
+    tilt = P.get("head_tilt", (6, -8, 0))
     Rh = Euler([math.radians(a) for a in tilt]).to_matrix().to_4x4()
     M = neck_top + Vector((0, -0.03, 0.15))
     head = lambda p: M + (Rh @ Vector(p))
     hq = Rh.to_quaternion()
-    # mask: long and narrow, heavy brow shelf, small chin
     bm = bmesh.new()
-    bmesh.ops.create_uvsphere(bm, u_segments=48, v_segments=32, radius=1)
+    bmesh.ops.create_uvsphere(bm, u_segments=22, v_segments=16, radius=1)
     for vt in bm.verts:
         x, y, z = vt.co
-        w = 0.07 * (1 - 0.35 * max(0, -z) ** 1.5) * (1 + 0.12 * max(0, z))
-        vt.co = (x * w, y * 0.055 - (0.012 * max(0, z) if y < 0 else 0), z * 0.105)
+        w = 0.072 * (1 - 0.45 * max(0, -z) ** 1.4) * (1 + 0.15 * max(0, z))
+        yy = y * 0.052
+        if y < 0:  # front face: brow and chin push forward, the middle recedes -> crescent profile
+            yy -= 0.03 * z * z + 0.012 * max(0, z)
+        vt.co = (x * w, yy, z * 0.108)
     xform(bm, Matrix.Translation(M) @ Rh)
     mask = finish(f"{tag}_mask", bm, coll, "ves_mask")
     for side in (-1, 1):
-        sock = sphere("tmp_sock", coll, "ves_mask", head((side * 0.028, -0.06, 0.012)), (0.024, 0.035, 0.019), rot=hq)
+        sock = sphere("tmp_sock", coll, "ves_mask", head((side * 0.029, -0.07, 0.012)), (0.028, 0.04, 0.024), rot=hq)
         boolean(mask, sock)
-    mask.data.set_sharp_from_angle(angle=math.radians(50))
+    mask.data.set_sharp_from_angle(angle=math.radians(22))   # faceted, carved look
     lid = P.get("lids", (0.4, 0.3))
-    brow = P.get("brows", (0.012, -0.004))   # asymmetric: dry humour and concern
+    brow = P.get("brows", (0.012, -0.004))
     for i, side in enumerate((-1, 1)):
         k = 'L' if side < 0 else 'R'
-        ec = head((side * 0.028, -0.043, 0.012))
-        sphere(f"{tag}_eye_{k}", coll, "ves_eye", ec, r=0.0135)
+        ec = head((side * 0.029, -0.05, 0.012))
+        sphere(f"{tag}_eye_{k}", coll, "ves_eye", ec, r=0.0175)
         bm = bmesh.new()
-        bmesh.ops.create_uvsphere(bm, u_segments=28, v_segments=16, radius=0.0158)
+        bmesh.ops.create_uvsphere(bm, u_segments=28, v_segments=16, radius=0.0202)
         bmesh.ops.delete(bm, geom=[vv for vv in bm.verts if vv.co.z < 0.001], context='VERTS')
         xform(bm, Matrix.Translation(ec) @ Rh @ basis(Vector((1, 0, 0)), Vector((0, -1, 0)), Vector((0, 0, 1))) @ Matrix.Rotation(math.radians(-10 + 80 * lid[i]), 4, 'X'))
         finish(f"{tag}_lid_{k}", bm, coll, "ves_lid")
-        b0 = head((side * 0.01, -0.062, 0.04 + brow[i] * 0.3)); b1 = head((side * 0.05, -0.052, 0.038 + brow[i]))
-        curve(f"{tag}_brow_{k}", coll, "ves_brow", [b0, (b0 + b1) / 2 + Rh @ Vector((0, -0.006, 0.005)), b1], 0.007, [1, 1.15, .7])
-    curve(f"{tag}_nose", coll, "ves_mask", [head((0, -0.066, 0.03)), head((0, -0.07, 0.0)), head((0, -0.064, -0.028))], 0.0065, [.6, 1, .8])
+        b0 = head((side * 0.008, -0.078, 0.043 + brow[i] * 0.3)); b1 = head((side * 0.055, -0.062, 0.04 + brow[i]))
+        curve(f"{tag}_brow_{k}", coll, "ves_brow", [b0, (b0 + b1) / 2 + Rh @ Vector((0, -0.006, 0.006)), b1], 0.0085, [1, 1.2, .7])
 
-    # broken brass halo: tilted back, gap of about 110 deg at the upper right, ends thickened where it broke
+    # upgrade 5: halo and fragments twice as thick, fragments chunkier
     hc = head((0, 0.045, 0.02))
     Rt = Rh @ Euler((math.radians(-22), 0, math.radians(14))).to_matrix().to_4x4()
     U = Rt @ Vector((1, 0, 0)); V = Rt @ Vector((0, 0, 1))
-    tube_arc(f"{tag}_halo", coll, "ves_brass", hc, 0.165, 0.012, 100, 350, U, V, seg=72, rscale=(1.0, 1.6))
-    for i, (ang, sz) in enumerate(((100, 1.0), (350, 1.0))):
-        tube_arc(f"{tag}_halo_break_{i+1}", coll, "ves_brass", hc, 0.165, 0.016, ang - (4 if i else 0), ang + (0 if i else 4), U, V,
-                 seg=4, ring=7, rscale=(1.1, 1.6), jitter=0.3, seed=11 + i)
-    # three irregular fragments of its own missing structure
-    frag = P.get("fragments", [(0.2, 22, 0), (0.215, 50, 1), (0.2, 78, 2)])  # (radius, angle deg, seed)
+    tube_arc(f"{tag}_halo", coll, "ves_brass", hc, 0.17, 0.024, 104, 346, U, V, seg=72, rscale=(1.0, 1.5))
+    for i, ang in enumerate((104, 346)):
+        tube_arc(f"{tag}_halo_break_{i+1}", coll, "ves_brass", hc, 0.17, 0.03, ang - (6 if i else 0), ang + (0 if i else 6), U, V,
+                 seg=4, ring=7, rscale=(1.1, 1.5), jitter=0.3, seed=11 + i)
+    frag = P.get("fragments", [(0.215, 22, 0), (0.235, 52, 1), (0.215, 82, 2)])
     for i, (rad, ang, seed) in enumerate(frag):
-        o = tube_arc(f"{tag}_fragment_{i+1}", coll, "ves_brass", hc, rad, 0.019, ang - 10 - seed * 2, ang + 10, U, V,
-                     seg=10, ring=7, rscale=(1.1, 1.6), jitter=0.28, seed=seed + 3)
+        o = tube_arc(f"{tag}_fragment_{i+1}", coll, "ves_brass", hc, rad, 0.034, ang - 13 - seed * 2, ang + 13, U, V,
+                     seg=10, ring=7, rscale=(1.15, 1.5), jitter=0.3, seed=seed + 3)
         o.data.set_sharp_from_angle(angle=math.radians(35))
 
-    # long articulated arms emerging from under the hood. forearms are heavier than upper arms.
+    # upgrade 8: much longer hands. one can arch over Morrow's head
     arms = P.get("arms", {})
     for side in (-1, 1):
         k = 'L' if side < 0 else 'R'
-        sh = spine(1.12) + Vector((side * 0.19 + 0.03, -0.02, 1.1))
+        sh = body_pt((side * 0.19 + 0.03, -0.02, 0), 1.1)
         if k in arms:
             el, wr = Vector(arms[k][0]), Vector(arms[k][1])
-        else:  # formal rest pose: hands loosely clasped in front of the waist
+        else:
             el = sh + Vector((side * 0.07, -0.06, -0.34))
-            wr = Vector((side * 0.035 + 0.02, -0.3, 0.66))
+            wr = Vector((side * 0.03 + 0.02, -0.3, 0.72 if side < 0 else 0.64))
         sphere(f"{tag}_shoulderjoint_{k}", coll, "ves_arm", sh, r=0.034)
         cylinder(f"{tag}_upperarm_{k}", coll, "ves_arm", sh, el, 0.028, 0.03)
         sphere(f"{tag}_elbow_{k}", coll, "ves_arm", el, r=0.033)
         cylinder(f"{tag}_forearm_{k}", coll, "ves_arm", el, wr, 0.04, 0.026)
-        fwd = Vector(arms.get(k + "_fwd", (Vector((-side * 0.8, -0.3, -0.5)) if k not in arms else (wr - el)))).normalized()
-        sidev = Vector(arms.get(k + "_side", (0, 0, 1) if k not in arms else fwd.cross(Vector((0, 0, 1))).normalized() * side))
-        hand(f"{tag}_hand_{k}", coll, "ves_hand", wr, fwd, sidev, 0.09, fingers=3, curl=arms.get(k + "_curl", 0.6), thick=0.12)
+        fwd = Vector(arms.get(k + "_fwd", (Vector((-side * 0.35, -0.25, -0.9)) if k not in arms else (wr - el)))).normalized()
+        sidev = Vector(arms.get(k + "_side", (side * 0.2, -1, 0) if k not in arms else fwd.cross(Vector((0, 0, 1))).normalized() * side))
+        hand(f"{tag}_hand_{k}", coll, "ves_hand", wr, fwd, sidev, 0.14, fingers=3, curl=arms.get(k + "_curl", 0.6), thick=0.1)
 
     parent_all(root, coll)
+    BEND[0] = 0.0
     return root
 
 # ================================================================ NIX
@@ -458,41 +476,71 @@ def build_nix(coll, P=None, tag="NIX"):
     P = P or {}
     root = new_root(f"{tag}_root", coll)
     R, r, off, dep = 0.075, 0.063, 0.034, 0.03
-    od = Vector((math.cos(math.radians(28)), 0, math.sin(math.radians(28))))   # opening direction
+    od = Vector((math.cos(math.radians(28)), 0, math.sin(math.radians(28))))
     a = cylinder(f"{tag}_body", coll, "nix_body", (0, -dep / 2, 0), (0, dep / 2, 0), R, seg=96)
     b = cylinder("tmpB", coll, "nix_body", od * off + Vector((0, -1, 0)), od * off + Vector((0, 1, 0)), r, seg=96)
     boolean(a, b)
-    # the missing section: a bite out of the lower horn
-    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1)
-    xform(bm, Matrix.Translation((0.07, 0, -0.062)) @ Matrix.Rotation(math.radians(40), 4, 'Y') @ Matrix.Diagonal((0.06, 0.2, 0.07, 1)))
-    cut = finish("tmpCut", bm, coll, "nix_body")
-    boolean(a, cut)
+    Mcut = Matrix.Translation((0.07, 0, -0.062)) @ Matrix.Rotation(math.radians(40), 4, 'Y') @ Matrix.Diagonal((0.06, 0.2, 0.07, 1))
+    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1); xform(bm, Mcut)
+    boolean(a, finish("tmpCut", bm, coll, "nix_body"))
     bv = a.modifiers.new("soft", 'BEVEL'); bv.width = 0.011; bv.segments = 5; bv.limit_method = 'ANGLE'
     bake_modifiers(a)
     a.data.set_sharp_from_angle(angle=math.radians(70))
-    # face across the belly (left side of the crescent)
+
+    # upgrade 2: narrow luminous coral edge along the inner curve of the crescent
+    cB = od * off
+    Mi = Mcut.inverted()
+    def on_body(t):
+        p = cB + Vector((math.cos(t), 0, math.sin(t))) * r
+        q = Mi @ p
+        return p.length < R - 0.004 and not all(abs(c) <= 0.5 for c in q)
+    flags = [on_body(math.radians(k)) for k in range(360)]
+    start = flags.index(False)
+    runs, cur = [], None
+    for kk in range(start, start + 361):
+        k = kk % 360
+        if flags[k] and cur is None:
+            cur = kk
+        if not flags[k] and cur is not None:
+            runs.append((cur, kk - 1)); cur = None
+    for i, (a0, a1) in enumerate(runs):
+        tube_arc(f"{tag}_edge_{i+1}", coll, "nix_edge", cB, r + 0.0006, 0.0042, a0, a1, Vector((1, 0, 0)), Vector((0, 0, 1)),
+                 seg=max(8, (a1 - a0) // 3), ring=10, rscale=(0.45, 3.4))
+
+    # face across the belly. upgrade 7: lid shapes cut across the eyes
     eye_tilt = P.get("eye_tilt", 0)
+    lids = P.get("lids", (0.25, -20))      # (amount covered 0..1, slant angle deg)
     fc = Vector((-0.05, -dep / 2 - 0.0012, -0.004))
     for side in (-1, 1):
         k = 'L' if side < 0 else 'R'
-        sphere(f"{tag}_eye_{k}", coll, "nix_eye", fc + Vector((side * 0.0125, 0, side * -0.003)),
-               (0.0065, 0.0032, 0.0105), rot=Euler((0, math.radians(side * 10 + eye_tilt), 0)).to_quaternion())
-    # two paddle fins on the outer curve, swept back
-    fins = P.get("fins", {"A": (128, 0.0), "B": (222, 0.0)})   # (angle on rim, extra sweep)
+        ec = fc + Vector((side * 0.0128, 0, side * -0.003))
+        sphere(f"{tag}_eye_{k}", coll, "nix_eye", ec, (0.0075, 0.0034, 0.012),
+               rot=Euler((0, math.radians(side * 10 + eye_tilt), 0)).to_quaternion())
+        cover, slant = lids
+        if cover > 0:
+            rot = Euler((0, math.radians(side * 10 + eye_tilt - slant * side), 0)).to_quaternion()
+            # lid lower edge sits `cover` of the way down the eye; it barely extends above the eye
+            c = ec + rot @ Vector((0, -0.003, 0.012 - 0.024 * cover + 0.0075))
+            sphere(f"{tag}_lid_{k}", coll, "nix_body", c, (0.0088, 0.0012, 0.0075), rot=rot)
+
+    # upgrade 10: rounded paddle fins that curl like small crescents
+    fins = P.get("fins", {"A": (128, 0.0), "B": (222, 0.0)})
     for k, (ang, sweep) in fins.items():
         t = math.radians(ang)
-        rad = Vector((math.cos(t), 0, math.sin(t)))
-        base = rad * (R - 0.006)
-        tip = base + rad * 0.045 + Vector((0, 0.02 + sweep, 0)) + Vector((-rad.z, 0, rad.x)) * 0.012
-        mid = (base + tip) / 2 + Vector((-rad.z, 0, rad.x)) * 0.01
-        curve(f"{tag}_fin_{k}", coll, "nix_fin", [base, mid, tip], 0.004, [0.9, 1.5, 0.5], ribbon=0.011, tilts=[1.57, 1.57, 1.57])
-    # incomplete orbit (construction guide, not rendered) and the attention bead
+        rad = Vector((math.cos(t), 0, math.sin(t))); perp = Vector((-rad.z, 0, rad.x))
+        base = rad * (R - 0.01)
+        pts = [base, base + rad * 0.016 + perp * 0.003, base + rad * 0.027 + perp * 0.011 + Vector((0, sweep * 0.5, 0)),
+               base + rad * 0.031 + perp * 0.022 + Vector((0, sweep, 0))]
+        f = curve(f"{tag}_fin_{k}", coll, "nix_fin", pts, 0.012, [0.6, 1.15, 1.2, 0.75])
+        f.scale = (1, 0.32, 1)
+
+    # upgrade 7: bead twice the size
     oc = od * off
     U, V = Vector((1, 0, 0)), Vector((0, -0.45, 0.9)).normalized()
     g = tube_arc(f"{tag}_guide_orbit", coll, "nix_guide", oc, 0.047, 0.0009, 20, 320, U, V, seg=64, ring=6)
     g.hide_render = True
     ba = math.radians(P.get("bead_angle", 250))
-    sphere(f"{tag}_bead", coll, "nix_bead", oc + (U * math.cos(ba) + V * math.sin(ba)) * 0.047, r=0.0075)
+    sphere(f"{tag}_bead", coll, "nix_bead", oc + (U * math.cos(ba) + V * math.sin(ba)) * 0.047, r=0.0125)
     parent_all(root, coll)
     return root
 
@@ -523,7 +571,6 @@ def camera(name="CAM_review"):
     return cam
 
 def frame(cam, objs, view_dir, lens=85, margin=1.18, aspect=0.75):
-    """Aim cam at the bounding box of objs from view_dir (unit vector from target to camera)."""
     pts = []
     for o in objs:
         if o.type in {'MESH', 'CURVE'} and not o.hide_render:
@@ -540,69 +587,121 @@ def frame(cam, objs, view_dir, lens=85, margin=1.18, aspect=0.75):
     cam.location = c + vd * dist
     cam.rotation_euler = (-vd).to_track_quat('-Z', 'Y').to_euler()
 
-# ================================================================ build
+def dream_shard(name, coll, loc, seed=7):
+    import random
+    bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=2, radius=0.04)
+    rr = random.Random(seed)
+    for vv in bm.verts:
+        vv.co *= 1 + rr.uniform(-0.18, 0.18)
+    xform(bm, Matrix.Translation(loc) @ Matrix.Diagonal((1, 0.55, 1.2, 1)))
+    return finish(name, bm, coll, "dream", smooth=False)
+
+def world_bbox(objs):
+    pts = [o.matrix_world @ Vector(c) for o in objs if o.type in {'MESH', 'CURVE'} for c in o.bound_box]
+    return (Vector((min(p.x for p in pts), min(p.y for p in pts), min(p.z for p in pts))),
+            Vector((max(p.x for p in pts), max(p.y for p in pts), max(p.z for p in pts))))
+
+# ================================================================ build: neutral cast
 mor = build_morrow(C_MOR)
 ves = build_vesper(C_VES)
 nix = build_nix(C_NIX)
 studio()
 cam = camera()
-
-# lineup positions at true relative scale
 LINEUP = {"MOR": ((0, 0, 0), 0), "VES": ((0.62, 0.08, 0), -12), "NIX": ((-0.34, -0.02, 0.46), 14)}
 for root, key in ((mor, "MOR"), (ves, "VES"), (nix, "NIX")):
     root.location = LINEUP[key][0]; root.rotation_euler.z = math.radians(LINEUP[key][1])
 
-# ---------------------------------------------------------------- relationship pose
-# Dream fragment floats front-left of Morrow. Morrow reaches toward it, Nix has
-# already touched it, Vesper stands behind and shelters Morrow while looking away.
+# ================================================================ relationship pose
 DREAM = Vector((-0.26, -0.26, 0.4))
 MOR_T = Matrix.LocRotScale(Vector((0, 0, 0)), Euler((math.radians(8), 0, math.radians(-15))), None)
 VES_T = Matrix.LocRotScale(Vector((0.36, 0.34, 0)), Euler((0, 0, math.radians(-40))), None)
-NIX_T = Matrix.LocRotScale(DREAM + Vector((-0.08, -0.02, 0.05)), Euler((0, math.radians(18), math.radians(-35))), None)
+NIX_T = Matrix.LocRotScale(DREAM + Vector((-0.085, -0.02, 0.05)), Euler((0, math.radians(18), math.radians(-35))), None)
 mi, vi = MOR_T.inverted(), VES_T.inverted()
 L = lambda Mi, p: Mi @ Vector(p)
 dl = mi @ DREAM
 shL = Vector((-0.15, -0.03, 0.33))
 reach = (dl - shL).normalized()
-pose_mor = {
-    "gaze": (mi.to_3x3() @ (DREAM - Vector((0, -0.08, 0.42)))).normalized(),
-    "lid": 0.08, "crest": "raised", "smile": -0.3, "curl": 0.2,
-    "arms": {"L": [shL + reach * 0.13 + Vector((-0.06, 0, 0.04)), shL + reach * 0.28 + Vector((0, 0, 0.02))],  # cautious reach
-             "R": [Vector((0.17, -0.1, 0.25)), Vector((0.05, -0.19, 0.27))]},        # other hand hugs its chest
-}
-morP = build_morrow(C_POSE, pose_mor, tag="POSE_MOR")
+morP = build_morrow(C_POSE, {
+    "gaze": (mi.to_3x3() @ (DREAM - Vector((0, -0.08, 0.44)))).normalized(),
+    "lid": 0.05, "crest": "raised", "smile": -0.35, "curl": 0.2, "brow": (0.9, 0.6),     # curious but worried
+    "arms": {"L": [shL + reach * 0.13 + Vector((-0.06, 0, 0.04)), shL + reach * 0.28 + Vector((0, 0, 0.02))],
+             "R": [Vector((0.17, -0.1, 0.24)), Vector((0.05, -0.2, 0.26))]},
+}, tag="POSE_MOR")
 morP.matrix_world = MOR_T
-
-pose_ves = {
-    "head_tilt": (-14, 10, 38),               # looking up and away: pretending not to worry
-    "lids": (0.45, 0.3), "brows": (0.018, -0.006),
-    "fragments": [(0.2, 165, 0), (0.22, 190, 1), (0.205, 215, 2)],  # drifting toward Morrow's side
-    "arms": {"L": [L(vi, (0.14, 0.12, 0.98)), L(vi, (0.03, -0.04, 0.76))],
-             "L_fwd": (vi.to_3x3() @ Vector((-0.45, -0.75, -0.3))).normalized(),
-             "L_side": (vi.to_3x3() @ Vector((0.0, 0.0, 1.0))).normalized(), "L_curl": 0.7,
+vesP = build_vesper(C_POSE, {
+    "head_tilt": (-14, 10, 38), "lids": (0.45, 0.3), "brows": (0.018, -0.006),
+    "fragments": [(0.215, 165, 0), (0.235, 192, 1), (0.215, 219, 2)],
+    "arms": {"L": [L(vi, (0.16, 0.1, 0.98)), L(vi, (0.07, -0.02, 0.8))],
+             "L_fwd": (vi.to_3x3() @ Vector((-0.45, -0.75, -0.35))).normalized(),
+             "L_side": (vi.to_3x3() @ Vector((0.0, 0.0, 1.0))).normalized(), "L_curl": 0.75,
              "R": [L(vi, (0.6, 0.18, 0.82)), L(vi, (0.42, 0.0, 0.98))],
              "R_fwd": (vi.to_3x3() @ Vector((-0.5, 0.3, 0.6))).normalized(), "R_curl": 0.8},
-}
-vesP = build_vesper(C_POSE, pose_ves, tag="POSE_VES")
+}, tag="POSE_VES")
 vesP.matrix_world = VES_T
-
-nixP = build_nix(C_POSE, {"fins": {"A": (60, 0.0), "B": (205, 0.03)}, "bead_angle": 330, "eye_tilt": 15}, tag="POSE_NIX")
+nixP = build_nix(C_POSE, {"fins": {"A": (60, 0.0), "B": (205, 0.03)}, "bead_angle": 330, "eye_tilt": 15,
+                          "lids": (0.35, -25)}, tag="POSE_NIX")   # trying to look innocent
 nixP.matrix_world = NIX_T
-# the dream fragment: a small broken crescent shard
-bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=2, radius=0.04)
-import random
-rr = random.Random(7)
-for vv in bm.verts:
-    vv.co *= 1 + rr.uniform(-0.18, 0.18)
-xform(bm, Matrix.Translation(DREAM) @ Matrix.Diagonal((1, 0.55, 1.2, 1)))
-shard = finish("POSE_dream_fragment", bm, C_POSE, "dream", smooth=False)
+dream_shard("POSE_dream_fragment", C_POSE, DREAM)
 
-# ---------------------------------------------------------------- render review set
-def set_visible(colls):
-    for c in (C_MOR, C_VES, C_NIX, C_POSE):
+# ================================================================ upgrade 11: signature poses
+SIG = {}
+# Morrow rest: hugs a dream fragment to its chest, crest relaxed
+SIG["morrow_rest"] = build_morrow(C_SIG, {"crest": "relaxed", "lid": 0.4, "smile": 0.5, "brow": (0.3, 0.2), "curl": 0.7,
+    "arms": {"L": [Vector((-0.19, -0.1, 0.22)), Vector((-0.06, -0.2, 0.235))],
+             "R": [Vector((0.19, -0.1, 0.24)), Vector((0.06, -0.205, 0.26))]},
+    "carry": (0.0, -0.24, 0.335)}, tag="SIG_MORREST")
+# Morrow hero: braced, determined, crest high
+SIG["morrow_hero"] = build_morrow(C_SIG, {"crest": "high", "lid": 0.32, "smile": -0.15, "brow": (-1.0, -1.0), "curl": 0.65,
+    "feet": (-0.05, 0.03), "ember_lag": (0, 0.008, 0),
+    "arms": {"L": [Vector((-0.235, -0.05, 0.3)), Vector((-0.3, -0.1, 0.37))],
+             "R": [Vector((0.235, -0.05, 0.26)), Vector((0.3, -0.1, 0.19))]}}, tag="SIG_MORHERO")
+SIG["morrow_hero"].rotation_euler = (math.radians(10), 0, 0)
+# Vesper rest: formal, clasped, slight concerned tilt (the default)
+SIG["vesper_rest"] = build_vesper(C_SIG, {"head_tilt": (8, -10, 0)}, tag="SIG_VESREST")
+# Vesper hero: deep crescent bow, long sheltering arm, fragments drawn into a shelter arc
+SIG["vesper_hero"] = build_vesper(C_SIG, {"bend": 0.75, "head_tilt": (24, 6, -6), "lids": (0.25, 0.2), "brows": (0.02, 0.012),
+    "fragments": [(0.27, 200, 0), (0.3, 232, 1), (0.27, 264, 2)],
+    "arms": {"L": [Vector((-0.33, -0.42, 0.88)), Vector((-0.2, -0.72, 0.62))], "L_fwd": (0.25, -0.75, -0.55), "L_side": (1, 0, 0.2), "L_curl": 0.7,
+             "R": [Vector((0.32, -0.38, 0.72)), Vector((0.22, -0.62, 0.5))], "R_fwd": (-0.2, -0.7, -0.6), "R_side": (-1, 0, 0.2), "R_curl": 0.7}},
+    tag="SIG_VESHERO")
+# Nix rest: smug half-lidded hover, bead pointing up
+SIG["nix_rest"] = build_nix(C_SIG, {"lids": (0.45, -28), "bead_angle": 95, "eye_tilt": 8}, tag="SIG_NIXREST")
+SIG["nix_rest"].rotation_euler = (0, math.radians(-12), 0)
+# Nix hero: banked dart, fins flared, eyes wide, bead forward
+SIG["nix_hero"] = build_nix(C_SIG, {"lids": (0.0, 0), "bead_angle": 345, "fins": {"A": (110, 0.025), "B": (250, 0.025)}},
+                            tag="SIG_NIXHERO")
+SIG["nix_hero"].rotation_euler = (0, math.radians(38), math.radians(-18))
+
+# ================================================================ upgrade 12: vertical staging
+ST_V = Matrix.LocRotScale(Vector((0.16, 0.3, 0)), Euler((0, 0, math.radians(-20))), None)
+svi = ST_V.inverted()
+stV = build_vesper(C_STG, {"bend": 0.6, "head_tilt": (22, 0, -14), "lids": (0.3, 0.25),
+    "fragments": [(0.26, 190, 0), (0.28, 222, 1), (0.26, 254, 2)],
+    "arms": {"L": [L(svi, (-0.16, 0.0, 0.72)), L(svi, (-0.06, -0.16, 0.66))], "L_fwd": tuple(svi.to_3x3() @ Vector((0.1, -0.7, -0.7))),
+             "L_side": tuple(svi.to_3x3() @ Vector((1, 0, 0))), "L_curl": 0.75}}, tag="STG_VES")
+stV.matrix_world = ST_V
+stM = build_morrow(C_STG, {"crest": "raised", "lid": 0.1, "smile": 0.4, "brow": (0.4, 0.4), "gaze": (0.15, -1, 0.25),
+                           "arms": {"R": [Vector((0.2, -0.08, 0.28)), Vector((0.24, -0.12, 0.38))]}}, tag="STG_MOR")
+stM.rotation_euler.z = math.radians(10)
+bpy.context.view_layer.update()
+halo = bpy.data.objects["STG_VES_halo"]
+lo, hi = world_bbox([halo])
+stN = build_nix(C_STG, {"lids": (0.3, -20), "bead_angle": 300, "fins": {"A": (150, 0.0), "B": (215, 0.0)}}, tag="STG_NIX")
+stN.location = ((lo.x + hi.x) / 2 + 0.03, (lo.y + hi.y) / 2, hi.z + 0.07)   # perched on top of Vesper's halo
+
+# ================================================================ render review set
+ALL = (C_MOR, C_VES, C_NIX, C_POSE, C_SIG, C_STG)
+def set_visible(colls, objs=None):
+    for c in ALL:
         c.hide_render = c not in colls
-    for o in C_NIX.all_objects:
-        pass
+    if objs is not None:  # only these roots' children within C_SIG
+        keep = set()
+        for r in objs:
+            keep.add(r); keep.update(r.children_recursive)
+        for o in C_SIG.objects:
+            o.hide_render = o not in keep and not o.name.endswith("guide_orbit")
+            if o.name.endswith("guide_orbit"):
+                o.hide_render = True
 
 def render(path, w, h, samples=40, silhouette=False):
     r = scene.render
@@ -611,9 +710,8 @@ def render(path, w, h, samples=40, silhouette=False):
     r.resolution_x, r.resolution_y, r.resolution_percentage = w, h, 100
     r.image_settings.file_format = 'PNG'
     scene.view_settings.view_transform = 'Standard' if silhouette else 'AgX'
-    vl = scene.view_layers[0]
-    vl.material_override = SIL if silhouette else None
-    floor = bpy.data.objects["ENV_floor"]; floor.hide_render = silhouette
+    scene.view_layers[0].material_override = SIL if silhouette else None
+    bpy.data.objects["ENV_floor"].hide_render = silhouette
     bg = next(n for n in scene.world.node_tree.nodes if n.type == 'BACKGROUND')
     bg.inputs[0].default_value = (1, 1, 1, 1) if silhouette else (0.22, 0.22, 0.23, 1)
     bg.inputs[1].default_value = 1.0 if silhouette else 0.6
@@ -621,42 +719,52 @@ def render(path, w, h, samples=40, silhouette=False):
     bpy.ops.render.render(write_still=True)
     print("rendered", path, flush=True)
 
+def visible_objs(colls):
+    return [o for c in colls for o in c.all_objects if not o.hide_render]
+
 if OUT:
     os.makedirs(OUT, exist_ok=True)
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cast_blockout_v01.blend"))
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cast_blockout_v02.blend"))
     VIEWS = {"front": 0, "threequarter": -38, "side": -90, "back": 180}
     for key, root, coll in (("morrow", mor, C_MOR), ("vesper", ves, C_VES), ("nix", nix, C_NIX)):
         set_visible([coll])
         keep = (root.location.copy(), root.rotation_euler.copy())
         root.location = (0, 0, 0.0 if key != "nix" else 0.1)
         for vname, ang in VIEWS.items():
-            root.rotation_euler = (0, 0, math.radians(ang))
-            bpy.context.view_layer.update()
+            root.rotation_euler = (0, 0, math.radians(ang)); bpy.context.view_layer.update()
             frame(cam, coll.all_objects, (0, -1, 0.06))
-            for sch in ("clay",):
-                apply_scheme(sch)
-                render(os.path.join(OUT, f"{key}_{vname}_clay.png"), 600, 800)
+            apply_scheme("clay"); render(os.path.join(OUT, f"{key}_{vname}_clay.png"), 600, 800)
             render(os.path.join(OUT, f"{key}_{vname}_silhouette.png"), 600, 800, silhouette=True)
         apply_scheme("value"); root.rotation_euler = (0, 0, math.radians(-25)); bpy.context.view_layer.update()
         frame(cam, coll.all_objects, (0, -1, 0.06))
         render(os.path.join(OUT, f"{key}_face_value.png"), 600, 800)
         root.location, root.rotation_euler = keep
-    # lineup at true scale
     set_visible([C_MOR, C_VES, C_NIX]); bpy.context.view_layer.update()
-    objs = list(C_MOR.all_objects) + list(C_VES.all_objects) + list(C_NIX.all_objects)
-    frame(cam, objs, (0, -1, 0.08), lens=70, aspect=1.6)
+    frame(cam, visible_objs([C_MOR, C_VES, C_NIX]), (0, -1, 0.08), lens=70, aspect=1.6)
     for sch in ("clay", "value"):
         apply_scheme(sch); render(os.path.join(OUT, f"lineup_{sch}.png"), 1280, 800)
     render(os.path.join(OUT, "lineup_silhouette.png"), 1280, 800, silhouette=True)
-    # relationship pose
+    # relationship
     set_visible([C_POSE]); bpy.context.view_layer.update()
-    frame(cam, C_POSE.all_objects, (-0.42, -1, 0.12), lens=60, aspect=1.0, margin=1.1)
-    for sch in ("clay", "value"):
-        apply_scheme(sch); render(os.path.join(OUT, f"relationship_{sch}.png"), 1000, 1000, samples=64)
+    frame(cam, visible_objs([C_POSE]), (-0.42, -1, 0.12), lens=60, aspect=1.0, margin=1.1)
+    apply_scheme("value"); render(os.path.join(OUT, "relationship_value.png"), 1000, 1000, samples=64)
     render(os.path.join(OUT, "relationship_silhouette.png"), 1000, 1000, silhouette=True)
-    apply_scheme("clay")
-    set_visible([C_MOR, C_VES, C_NIX])
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cast_blockout_v01.blend"))
+    # signature poses, each on its own at the origin
+    for name, root in SIG.items():
+        set_visible([C_SIG], [root]); keep = root.location.copy()
+        root.location = (0, 0, 0.1 if name.startswith("nix") else 0); bpy.context.view_layer.update()
+        vd = (-0.55, -1, 0.1) if name.startswith("vesper_hero") else (-0.25, -1, 0.08)
+        frame(cam, [o for o in C_SIG.all_objects if not o.hide_render], vd, lens=70, aspect=0.75, margin=1.3)
+        apply_scheme("value"); render(os.path.join(OUT, f"sig_{name}.png"), 600, 800)
+        render(os.path.join(OUT, f"sig_{name}_silhouette.png"), 600, 800, silhouette=True)
+        root.location = keep
+    # vertical staging frame 9:16
+    set_visible([C_STG]); bpy.context.view_layer.update()
+    frame(cam, visible_objs([C_STG]), (-0.3, -1, 0.1), lens=50, aspect=9 / 16, margin=1.08)
+    apply_scheme("value"); render(os.path.join(OUT, "staging_vertical_value.png"), 720, 1280, samples=48)
+    render(os.path.join(OUT, "staging_vertical_silhouette.png"), 720, 1280, silhouette=True)
+    apply_scheme("clay"); set_visible([C_MOR, C_VES, C_NIX])
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cast_blockout_v02.blend"))
     print("ALL DONE", flush=True)
 else:
     apply_scheme("clay")

@@ -158,3 +158,67 @@ to a strong design, and they make all three focal features visible at phone size
 - [AnimSchool Blog: Pose Appeal](https://blog.animschool.edu/tag/pose-appeal/)
 - [Larry's Toon Institute: Posing](https://www.awn.com/tooninstitute/lessonplan/posing.htm)
 - [Victoria University of Wellington: Vertical Media Workshop](https://www.wgtn.ac.nz/seftms/attachments/vertical-media-workshop-4.11.2013.pdf)
+
+---
+
+## Results after applying the upgrades (version 2)
+
+All 13 upgrades were applied in `blender/stage2_blockout.py`, which now builds
+version 2. Renders are in `blender/renders/stage2_v2`. Version 1 renders stay in
+`blender/renders/stage2` for comparison.
+
+### New scores
+
+| Lens | Morrow | Vesper | Nix |
+| --- | --- | --- | --- |
+| 1. Silhouette | 4 | 3 | 4 |
+| 2. Shape language | 4 | 3 | 4 |
+| 3. Big, medium, small | 4 | 3 | 4 |
+| 4. Detail distribution | 4 | 3 | 4 |
+| 5. Proportion and exaggeration | 4 | 4 | 3 |
+| 6. Face and expression | 4 | 4 | 4 |
+| 7. Focal feature | 4 | 4 | 4 |
+| 8. Pose and line of action | 4 | 4 | 4 |
+| 9. Contrast with the world | 3 | 3 | 3 |
+| 10. Originality | 4 | 3 | 3 |
+| **Total out of 50** | **39** (was 30) | **34** (was 21) | **37** (was 29) |
+
+### What changed
+
+- **Vesper no longer reads as No-Face.** The mask is now dark faceted stone with a
+  crescent side profile, and the bright eyes are the first thing you see.
+- **Every focal feature survives the thumbnail test.** Morrow's cavity and ember,
+  Vesper's thicker halo, and Nix's bead and coral edge all read at small size.
+- **Faces have range.** Morrow's brows can worry or set with determination. Nix's
+  lid cuts give it a smug, innocent, or wide-eyed look.
+- **Each character has a rest pose and a hero pose.** Morrow hugs a dream fragment
+  at rest and braces with its crest high as a hero. Vesper stands formally at rest
+  and bows into a deep crescent to shelter. Nix hovers smugly at rest and banks into
+  a dart as a hero.
+- **All three fit a 9:16 frame.** Vesper bows behind Morrow with one long hand over
+  its head, and Nix perches on top of the halo.
+
+### What is still weak
+
+- **Vesper's front view still reads as a tall robed figure.** The big crescent
+  mantle sweep shows from the side but is too subtle from the front.
+- **The small hip panel on Vesper reads as a hanging tag.** It should be removed
+  or merged into the crescent mantle.
+- **Nix's sides are still flat slabs** when it turns edge-on.
+- **Contrast with the world is untested.** It depends on stage 4 materials, the
+  coral glow, and an actual environment.
+- **Poses are hand-placed, not rigged.** None of the characters is animation-ready.
+
+## Sound identity
+
+A sound attached to each signature feature helps viewers recognize a character
+even when it is off screen. These are design notes for whoever builds the sound.
+
+| Character | Signature sound | When it plays |
+| --- | --- | --- |
+| Morrow | A soft, warm hum from the ember, like a held breath through a ceramic flute | Rises in pitch when curious, flutters when scared, steadies when brave |
+| Vesper | Low brass chimes from the fragments, slightly out of tune with each other | Chimes slowly as the fragments drift. A sudden jangle when it loses composure |
+| Nix | A quick, dry click and a short whoosh | The click when the bead snaps to a new target, the whoosh on every dart |
+
+Keep each sound short and quiet enough to sit under dialogue and music. One sound
+per character is enough. More becomes noise.
