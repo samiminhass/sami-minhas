@@ -47,7 +47,8 @@ The rigs are built by `stage5_rigging.py`, which also runs the tests in
 | `eye_target` | Where both pupils look |
 | `ember` | Lags behind sudden moves. Run `bake_lag` after animating the body |
 | `elbow_pole_L`, `elbow_pole_R` | Aim the elbows |
-| `leg_L`, `leg_R`, `foot_L`, `foot_R` | Steps and balance corrections |
+| `foot_L`, `foot_R` | Planted feet. They stay put while `body` moves and leans. Key them to take steps |
+| `leg_L`, `leg_R` | Driven: each leg stretches from the hip to its foot |
 
 ## Vesper (`RIG_VES`)
 
@@ -57,6 +58,8 @@ The rigs are built by `stage5_rigging.py`, which also runs the tests in
 | `lid_upper_L`, `lid_upper_R` | 0 to 1 | Upper lids. Uneven defaults give its dry look |
 | `lid_lower_L`, `lid_lower_R` | 0 to 1 | Lower lids |
 | `brow_raise_L`, `brow_raise_R` | -1 to 1 | Brows. One up, one down reads as dry humour |
+| `brow_tilt_L`, `brow_tilt_R` | -1 to 1 | Inner end up for concern, down for sternness |
+| `halo_level` | 0 to 1 | How much the halo counters the bow and stays nearer upright. Default 0.6 |
 | `frag_shelter` | 0 to 1 | The three fragments swing into a partial sheltering arc |
 | `frag_spread` | -1 to 1 | Fragments bunch together or spread apart |
 | `frag_fluster` | 0 to 1 | Loss of composure: fragment spacing becomes uneven |
@@ -105,7 +108,7 @@ is keyed. Stage 6 uses both.
 
 ## Test results
 
-**72 of 72 tests pass,** including direction tests that check each face control moves the right way, and a sweep of every slider at both ends.
+**75 of 75 tests pass,** including direction tests that check each face control moves the right way, and a sweep of every slider at both ends.
 
 - **Every control moves the part it controls.**
 - **Deformation stays within limits.** Every deforming part was measured in each

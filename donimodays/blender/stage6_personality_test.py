@@ -1145,8 +1145,8 @@ def rig_morrow(root, tag="MOR"):
         bp = curve_pts(O[f"{tag}_brow_{k}"])
         B.append(dict(name=f"brow_{k}", head=bp[1], tail=bp[1] + n * 0.02, parent="body", up=up))
         legc = bbox_center(O[f"{tag}_leg_{k}"]); footc = bbox_center(O[f"{tag}_foot_{k}"])
-        B += [dict(name=f"leg_{k}", head=legc + Vector((0, 0, 0.045)), tail=legc - Vector((0, 0, 0.045)), parent="root", up=(0, -1, 0)),
-              dict(name=f"foot_{k}", head=Vector((legc.x, legc.y, 0.03)), tail=footc + Vector((0, -0.05, 0)), parent=f"leg_{k}", up=(0, 0, 1))]
+        B += [dict(name=f"leg_{k}", head=legc + Vector((0, 0, 0.045)), tail=Vector((legc.x, legc.y, 0.03)), parent="body", up=(0, -1, 0)),
+              dict(name=f"foot_{k}", head=Vector((legc.x, legc.y, 0.03)), tail=footc + Vector((0, -0.05, 0)), parent="root", up=(0, 0, 1))]
         ap = centerline(O[f"{tag}_arm_{k}"], 2)
         ARMPTS[k] = ap
         palm = bbox_center(O[f"{tag}_hand_{k}_palm"])
@@ -1189,6 +1189,8 @@ def rig_morrow(root, tag="MOR"):
         bone_parent(O[f"{tag}_shoulder_{k}"], rig, "body")
         bone_parent(O[f"{tag}_leg_{k}"], rig, f"leg_{k}")
         bone_parent(O[f"{tag}_foot_{k}"], rig, f"foot_{k}")
+        st = rig.pose.bones[f"leg_{k}"].constraints.new('STRETCH_TO')   # the leg reaches from the hip to the planted foot
+        st.target = rig; st.subtarget = f"foot_{k}"; st.rest_length = rig.data.bones[f"leg_{k}"].length; st.volume = 'NO_VOLUME'
         bone_parent(O[f"{tag}_hand_{k}_palm"], rig, f"hand_{k}")
         for f, tipn in (("finger1", "fingertip1"), ("finger2", "fingertip2"), ("thumb", "thumbtip")):
             fo = O[f"{tag}_hand_{k}_{f}"]; fp = FPTS[(k, f)]
@@ -1273,6 +1275,7 @@ def rig_morrow(root, tag="MOR"):
     return rig
 
 # ================================================================ STAGE 5: Vesper rig
+HALO_FC = [None]
 def rig_vesper(root, tag="VES"):
     O = bpy.data.objects
     coll = root.users_collection[0]
@@ -1370,6 +1373,18 @@ def rig_vesper(root, tag="VES"):
             nb = len([b for b in rig.data.bones if b.name.startswith(f"{f}_{k}_")])
             for i in range(nb):
                 fc = drive(rig.pose.bones[f"{f}_{k}_{i+1}"], "rotation_euler", 0, "-0.7*(g-0.6)", rig, []); var(fc, "g", f"grip_{k}")
+    for k, sgn in (("L", -1), ("R", 1)):
+        add_prop(rig, f"brow_tilt_{k}", 0, -1, 1, "Inner end up for concern (+), down for sternness (-)")
+        fc = drive(rig.pose.bones[f"brow_{k}"], "rotation_euler", 1, f"{-sgn}*0.4*w", rig, []); var(fc, "w", f"brow_tilt_{k}")
+    add_prop(rig, "halo_level", 0.6, 0, 1, "How much the halo counters the bow, staying nearer upright")
+    fc = rig.pose.bones["halo"].driver_add("rotation_euler", 0); fc.driver.type = 'SCRIPTED'
+    for nm_, bn_ in (("a", "spine_2"), ("b", "spine_3"), ("c", "neck"), ("d", "head")):
+        v_ = fc.driver.variables.new(); v_.name = nm_; v_.type = 'TRANSFORMS'
+        v_.targets[0].id = rig; v_.targets[0].bone_target = bn_
+        v_.targets[0].transform_type = 'ROT_X'; v_.targets[0].transform_space = 'LOCAL_SPACE'
+    var(fc, "h", "halo_level")
+    fc.driver.expression = "-h*(a+b+c+d)"
+    HALO_FC[0] = fc
     add_prop(rig, "frag_shelter", 0, 0, 1, "Fragments swing round into a partial sheltering arc")
     add_prop(rig, "frag_spread", 0, -1, 1, "Fragments bunch together (-) or spread apart (+)")
     add_prop(rig, "frag_fluster", 0, 0, 1, "Loss of composure: fragment spacing becomes uneven")
@@ -1536,6 +1551,24 @@ RIGS = {"morrow": (mor, rig_morrow(mor)), "vesper": (ves, rig_vesper(ves)), "nix
 for _r, _rig in RIGS.values():
     organize(_rig)
 upd()
+
+def _halo_tilt(vr):
+    hb = vr.pose.bones["halo"]
+    v_up = (vr.matrix_world.to_3x3() @ hb.matrix.to_3x3() @ Vector((0, 0, 1))).normalized()
+    return math.degrees(v_up.angle(Vector((0, 0, 1))))
+_vr = RIGS["vesper"][1]
+for _b, _a in (("spine_2", 0.3), ("spine_3", 0.27), ("neck", 0.22)):
+    _vr.pose.bones[_b].rotation_euler = (_a, 0, 0)
+upd(); _with = _halo_tilt(_vr)
+HALO_FC[0].driver.expression = "h*(a+b+c+d)"; upd(); _flip = _halo_tilt(_vr)
+if _with <= _flip:
+    HALO_FC[0].driver.expression = "-h*(a+b+c+d)"
+_vr["halo_level"] = 0.0; upd(); _none = _halo_tilt(_vr); _vr["halo_level"] = 0.6
+for _b in ("spine_2", "spine_3", "neck"):
+    _vr.pose.bones[_b].rotation_euler = (0, 0, 0)
+upd()
+HALO_REPORT = (_none, min(_with, _flip))
+print(f"HALO tilt in the bow: {HALO_REPORT[0]:.1f} deg without counter-rotation, {HALO_REPORT[1]:.1f} deg with", flush=True)
 
 def bake_follow_through(rig, frames, pairs, delay=3, scale=1.0):
     """Follow-through tool. For each (follower_bone, source_bone), key the follower's own rotation so it
