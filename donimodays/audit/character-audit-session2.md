@@ -413,7 +413,7 @@ individual design language once the fins stop pointing toward cetaceans.
 3. **Motif to retain: incompleteness.** Crack, break, bite. Each character is missing
    something, in a different way.
 4. **Motif to reduce: the crescent with a dot.** Keep it for Nix. Change Morrow's
-   cavity profile (finding P1 below) and remove the notch from the backdrop moon.
+   cavity profile (Morrow, Option B, in section 7) and remove the notch from the backdrop moon.
 5. **Proposed group composition:** Vesper bowed into one large crescent arc over
    Morrow, so the cast's crescent motif lives at group scale. Morrow low and centre,
    facing out. Nix sitting in the gap of Vesper's broken halo, filling the missing
