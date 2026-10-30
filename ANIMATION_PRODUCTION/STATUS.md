@@ -3,25 +3,45 @@
 Branch: `claude/animation-studio-pilot-slate`
 Last updated: 2026-10-30
 
+## EP decisions received in this session
+
+| Date | Decision |
+|---|---|
+| 2026-10-30 | Directives, Addendum 01 and the studio brief confirmed as the EP's |
+| 2026-10-30 | **Gate 1 passed.** Pilot slate v0.2 approved: P15A *Footprints*, P30A *Mirror*, P45A *Display*. *Knead*, *Burnt* and *The Little Door* held. The crossed-stitch apron clue goes in *Display*. |
+
+Character Lab: please copy these into `STUDIO_DIRECTIVES/EP_DECISIONS.md`. The apron-clue decision was approved as part of the slate.
+
+## Current work
+
 | Item | Status |
 |------|--------|
-| Studio directives, Addendum 01, roster, EP decisions 1–11 | Read. Directives confirmed by the EP in this session. |
-| Pilot concept slate | **v0.2** at `ANIMATION_PRODUCTION/01_STORY/PILOT_CONCEPT_SLATE_v0.2.md`. Gate 1, awaiting EP review. v0.1 kept. |
-| Recommended pilots | P15-A *Footprints* (15 s), P30-A *Mirror* (30 s), P45-A *Display* (45 s). All use the bakery set. |
-| Held concepts | *Knead*, *Burnt*, *The Little Door*. They conflict with the one-central-mystery story engine. |
-| Content backlog | `ANIMATION_PRODUCTION/01_STORY/CONTENT_BACKLOG.md`. Nine entries. |
-| Blender | 5.2.3 LTS installed with `setup_blender.sh`. 9:16 test frames rendered at 540 × 960: Workbench 3.1 s, Cycles CPU at 32 samples 5.9 s (default scene). Colour management is AgX. |
-| Beat sheets, storyboards, animatics | Not started. Waiting on Gate 1. |
-| Environment: bakery hero set | Not started. Owned by this department. |
-| Character assets needed | Mila (CHR01), Borek (CHR02), bunny prop, bread loaf prop. Waiting on Character Lab release. |
+| Pilot slate | v0.2 approved (Gate 1) |
+| Pre-production package | **v001**, `02_PREPRODUCTION/PILOT_PREPRODUCTION_v001.md`. **Gate 2 submission**, awaiting EP review and Audit Studio review. |
+| Shot lists | `02_PREPRODUCTION/shotlists/`: 5, 10 and 10 shots |
+| Storyboards | `03_STORYBOARDS/<pilot>/`: 26 panels and 3 contact sheets, 9:16 with safe-zone overlays |
+| Animatics | `04_ANIMATICS/`: 15.0 s, 30.0 s and 45.0 s, 540 × 960, temp sync sound |
+| Bakery hero set (blockout) | `05_BLENDER/blockout/ENV_bakery_blockout_v001.blend` |
+| Pipeline scripts | `05_BLENDER/scripts/kestrava_blockout.py`, `make_boards.py`. Blender 5.2.3 LTS. |
+| Final animation | Blocked on character release (Mila, Borek, bunny) |
 
-## Open EP decisions (Animation Studio)
+## Submission to the Audit Studio (Session 03)
 
-1. Approve or swap the three pilots.
-2. Include the crossed-stitch apron clue in *Display*: yes or no.
-3. Agree that *Knead*, *Burnt* and *The Little Door* are held.
+- **Project:** Kestrava pilots. **Version:** pre-production v001.
+- **Branch:** `claude/animation-studio-pilot-slate`, path `ANIMATION_PRODUCTION/`.
+- **Review:** the three animatics and contact sheets. The opening 2 seconds of each is the priority (Addendum 01).
+- **Known limitations:** section 8 of the package. Proxy characters, held stills, synthesised temp sound, approximate safe zones, and two provisional Footprints compositions (S03, S04).
 
-## Notes for the Character Lab
+## Change requests to the Character Lab (Session 01)
 
-- The recommended pilots need the bunny prop rig to support being set down alone on a counter and "held up to look at" someone. Both are covered by the Bible's hand/world attachment switch.
-- *Mirror* needs Mila's braid end to be posable under her nose. That's an extreme pose for the braid chain; please include it in the deformation tests.
+| ID | Request | For |
+|---|---|---|
+| CR-02-001 | Borek costume variant: "oldest apron" with a patch sewn in the crossed stitch (the central-mystery motif). Visible for under a second, so it must read at medium-wide on a phone. | Display S03 |
+| CR-02-002 | Mila braid deformation test: braid end held under her nose as a mustache, both hands. | Mirror S01–S07 |
+| CR-02-003 | Bunny: must stand unsupported on a counter, and support the "held up to look" pose at Mila's face height. | All three pilots |
+
+## Findings for the Character Lab
+
+1. At Bible proportions, Borek's belly hides his clogs from above.
+2. Mila (1.15 m) can't see over a 0.95 m counter. The bakery now has a step stool.
+3. Borek's eyes read at medium close-up but are lost in wides, confirming the known risk. His brows and mustache carry the wides.

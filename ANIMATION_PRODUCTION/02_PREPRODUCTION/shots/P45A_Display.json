@@ -1,0 +1,507 @@
+{
+  "id": "P45A",
+  "title": "Display",
+  "version": "v001",
+  "fps": 24,
+  "res_percent": 50,
+  "shots": [
+    {
+      "id": "S01",
+      "start": 0,
+      "frames": 48,
+      "grade": "night",
+      "size": "Close-up, oven mouth",
+      "lens": 40,
+      "camera_move": "Locked off",
+      "cam": [
+        -2.1,
+        0.3,
+        1.25
+      ],
+      "aim": [
+        -2.1,
+        1.6,
+        1.02
+      ],
+      "chars": {},
+      "extras": [
+        "tray_oven",
+        "best_loaf_display"
+      ],
+      "action": "HOOK. In the dark, small hands pull a tray from the glowing oven. On it: a sad, lopsided loaf.",
+      "performance": "The tray comes out in two jerks; it's heavy for her. The loaf slides and settles crooked.",
+      "sound": "Fire crackle, a scrape of metal on stone.",
+      "cues": [
+        {
+          "t": 0.2,
+          "type": "crackle"
+        },
+        {
+          "t": 0.9,
+          "type": "scrape"
+        }
+      ]
+    },
+    {
+      "id": "S02A",
+      "start": 48,
+      "frames": 96,
+      "grade": "night",
+      "size": "Medium shot across the counter",
+      "lens": 35,
+      "camera_move": "Locked off",
+      "cam": [
+        0.75,
+        -1.15,
+        1.35
+      ],
+      "aim": [
+        0.75,
+        0.6,
+        1.0
+      ],
+      "chars": {
+        "mila": {
+          "pos": [
+            0.7,
+            0.8,
+            0.3
+          ],
+          "face": 0,
+          "arms": "down"
+        }
+      },
+      "extras": [
+        "lopsided_loaf_counter",
+        "counter_bunny_display",
+        "best_loaf_display",
+        "step_stool"
+      ],
+      "action": "Mila sets the loaf on the counter, then sets her bunny beside it as its guard. She squeezes the bunny's paw once.",
+      "performance": "The squeeze is her uncertainty tell. She hesitates 10 frames before letting go of the bunny: leaving it is a huge act of trust. She stands on the bakery step stool: at 1.15 m she cannot see over the 0.95 m counter.",
+      "sound": "A soft thump of bread on wood.",
+      "cues": [
+        {
+          "t": 3.0,
+          "type": "thud"
+        }
+      ]
+    },
+    {
+      "id": "S02B",
+      "start": 144,
+      "frames": 96,
+      "grade": "night",
+      "size": "Medium wide",
+      "lens": 35,
+      "camera_move": "Locked off",
+      "cam": [
+        -0.1,
+        -0.2,
+        1.15
+      ],
+      "aim": [
+        0.0,
+        1.9,
+        0.75
+      ],
+      "chars": {
+        "mila": {
+          "pos": [
+            0.05,
+            2.2
+          ],
+          "face": 0,
+          "pose": "crouch",
+          "arms": "crossed"
+        }
+      },
+      "extras": [
+        "lopsided_loaf_counter",
+        "counter_bunny_display",
+        "best_loaf_display",
+        "step_stool"
+      ],
+      "action": "She scurries behind the flour sacks and folds herself small. Only her eyes and hair show above the sacks.",
+      "performance": "Fast scurry (Mila tempo), then total stillness.",
+      "sound": "Quick sneaker pats, the rustle of sacking.",
+      "cues": [
+        {
+          "t": 6.3,
+          "type": "pat"
+        },
+        {
+          "t": 6.5,
+          "type": "pat"
+        },
+        {
+          "t": 6.7,
+          "type": "pat"
+        },
+        {
+          "t": 7.2,
+          "type": "rustle"
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "start": 240,
+      "frames": 192,
+      "grade": "dawn",
+      "size": "Wide, from behind the sacks (Mila's eyeline)",
+      "lens": 24,
+      "camera_move": "Locked off",
+      "cam": [
+        0.55,
+        2.42,
+        1.7
+      ],
+      "aim": [
+        1.6,
+        -2.2,
+        1.0
+      ],
+      "chars": {
+        "mila": {
+          "pos": [
+            0.05,
+            2.25
+          ],
+          "face": 0,
+          "pose": "crouch",
+          "arms": "crossed"
+        },
+        "borek": {
+          "pos": [
+            1.7,
+            -2.0
+          ],
+          "face": 180,
+          "arms": "down",
+          "apron_patch": true
+        }
+      },
+      "extras": [
+        "lopsided_loaf_counter",
+        "counter_bunny_display",
+        "best_loaf_display",
+        "step_stool"
+      ],
+      "action": "Dawn. Clogs heard first. Borek comes in and ties on his oldest apron, then stops dead: there's something on his counter.",
+      "performance": "Apron tie as routine, unhurried. CLUE: for under a second the apron's patch, with its crossed stitch, faces camera. Unremarked; no push, no music hit.",
+      "sound": "Clops on the step, a door latch, the morning rooster far away.",
+      "cues": [
+        {
+          "t": 10.2,
+          "type": "clop"
+        },
+        {
+          "t": 10.8,
+          "type": "clop"
+        },
+        {
+          "t": 11.3,
+          "type": "latch"
+        },
+        {
+          "t": 12.6,
+          "type": "clop"
+        },
+        {
+          "t": 13.4,
+          "type": "clop"
+        }
+      ]
+    },
+    {
+      "id": "S04A",
+      "start": 432,
+      "frames": 144,
+      "grade": "dawn",
+      "size": "Medium close-up",
+      "lens": 50,
+      "camera_move": "Locked off",
+      "cam": [
+        0.45,
+        0.95,
+        1.38
+      ],
+      "aim": [
+        0.6,
+        -0.5,
+        1.3
+      ],
+      "chars": {
+        "borek": {
+          "pos": [
+            0.6,
+            -0.5
+          ],
+          "face": 180,
+          "arms": "inspect",
+          "holding": "loaf_bad",
+          "expr": "brow_up"
+        }
+      },
+      "extras": [
+        "counter_bunny_display",
+        "best_loaf_display",
+        "step_stool"
+      ],
+      "action": "He lifts the loaf, turns it, and knocks on its bottom like an expert. Unreadable.",
+      "performance": "A long Borek hold (2 s) on the loaf, nothing on his face but one brow. The knock is two raps; a pause between them.",
+      "sound": "Two hollow knocks on the crust.",
+      "cues": [
+        {
+          "t": 21.5,
+          "type": "knock"
+        },
+        {
+          "t": 22.1,
+          "type": "knock"
+        }
+      ]
+    },
+    {
+      "id": "S04B",
+      "start": 576,
+      "frames": 48,
+      "grade": "dawn",
+      "size": "Close-up, insert",
+      "lens": 50,
+      "camera_move": "Locked off",
+      "cam": [
+        0.3,
+        1.4,
+        0.8
+      ],
+      "aim": [
+        0.05,
+        2.2,
+        0.72
+      ],
+      "chars": {
+        "mila": {
+          "pos": [
+            0.05,
+            2.2
+          ],
+          "face": 0,
+          "pose": "crouch",
+          "arms": "crossed"
+        }
+      },
+      "action": "Behind the sacks, Mila clutches her braid in both fists. We expect the bin.",
+      "performance": "She holds her breath: shoulders up, no blink for the whole shot.",
+      "sound": "Silence.",
+      "cues": [],
+      "extras": [
+        "step_stool"
+      ]
+    },
+    {
+      "id": "S05A",
+      "start": 624,
+      "frames": 144,
+      "grade": "dawn",
+      "size": "Medium shot, interior toward the window",
+      "lens": 35,
+      "camera_move": "Slow pan following Borek",
+      "cam": [
+        0.4,
+        -0.2,
+        1.5
+      ],
+      "aim": [
+        -1.3,
+        -2.15,
+        0.95
+      ],
+      "chars": {
+        "borek": {
+          "pos": [
+            -1.3,
+            -1.65
+          ],
+          "face": 0,
+          "arms": "hold",
+          "holding": "loaf_bad"
+        }
+      },
+      "extras": [
+        "counter_bunny_display",
+        "best_loaf_display",
+        "step_stool"
+      ],
+      "action": "He carries it to the shop window, lifts his best loaf off the centre stand, and puts hers there instead.",
+      "performance": "Precise, rhythmic: he handles the bad loaf exactly as carefully as his best.",
+      "sound": "Clops, a soft placement.",
+      "cues": [
+        {
+          "t": 26.6,
+          "type": "clop"
+        },
+        {
+          "t": 27.3,
+          "type": "clop"
+        },
+        {
+          "t": 30.6,
+          "type": "thud"
+        }
+      ]
+    },
+    {
+      "id": "S05B",
+      "start": 768,
+      "frames": 96,
+      "grade": "dawn",
+      "size": "Wide",
+      "lens": 28,
+      "camera_move": "Locked off",
+      "cam": [
+        0.6,
+        0.25,
+        1.2
+      ],
+      "aim": [
+        1.7,
+        -2.3,
+        0.75
+      ],
+      "chars": {
+        "mila": {
+          "pos": [
+            1.7,
+            -2.1
+          ],
+          "face": 0,
+          "arms": "hold",
+          "bunny": true
+        },
+        "borek": {
+          "pos": [
+            -1.3,
+            -1.65
+          ],
+          "face": 0,
+          "arms": "down"
+        }
+      },
+      "action": "While his back is turned, Mila darts out of hiding, scoops her bunny off the counter, and slips out of the door.",
+      "performance": "Mila tempo at full speed. She never looks back.",
+      "sound": "Soft pats, the latch, the door easing shut.",
+      "cues": [
+        {
+          "t": 32.6,
+          "type": "pat"
+        },
+        {
+          "t": 32.8,
+          "type": "pat"
+        },
+        {
+          "t": 33.9,
+          "type": "latch"
+        }
+      ],
+      "extras": [
+        "step_stool"
+      ]
+    },
+    {
+      "id": "S06",
+      "start": 864,
+      "frames": 144,
+      "grade": "morning",
+      "size": "Frame within frame: through the shop window",
+      "lens": 35,
+      "camera_move": "Locked off",
+      "cam": [
+        -1.28,
+        -1.5,
+        1.3
+      ],
+      "aim": [
+        -1.3,
+        -3.7,
+        0.6
+      ],
+      "chars": {
+        "mila": {
+          "pos": [
+            -1.3,
+            -3.6
+          ],
+          "face": 180,
+          "arms": "hold",
+          "bunny": true
+        }
+      },
+      "extras": [
+        "lopsided_loaf_display"
+      ],
+      "action": "PAYOFF. Morning. From inside the display: her lopsided loaf sits front and centre among perfect bread. Beyond the glass, Mila sees it.",
+      "performance": "Her face opens over 20 frames: guarded to astonished to a small, held smile. Freckles bunch.",
+      "sound": "Morning square ambience; a warm music sting.",
+      "cues": [
+        {
+          "t": 37.5,
+          "type": "sting"
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "start": 1008,
+      "frames": 72,
+      "grade": "morning",
+      "size": "Medium shot, exterior, depth",
+      "lens": 35,
+      "camera_move": "Locked off",
+      "cam": [
+        -0.55,
+        -4.6,
+        1.0
+      ],
+      "aim": [
+        -1.15,
+        -2.5,
+        1.0
+      ],
+      "chars": {
+        "mila": {
+          "pos": [
+            -1.25,
+            -3.55
+          ],
+          "face": 180,
+          "arms": "raise",
+          "bunny": true
+        },
+        "borek": {
+          "pos": [
+            -0.9,
+            -0.9
+          ],
+          "face": 180,
+          "arms": "crossed",
+          "expr": "mustache_up"
+        }
+      },
+      "extras": [
+        "lopsided_loaf_display"
+      ],
+      "action": "Mila holds her bunny up to the glass so it can see too: her consulting gesture. Inside, Borek has his back to the window; his mustache lifts.",
+      "performance": "Neither acknowledges the other. End on the held image.",
+      "sound": "The sting resolves; the square's ambience carries out.",
+      "cues": [
+        {
+          "t": 43.0,
+          "type": "chord"
+        }
+      ]
+    }
+  ]
+}
