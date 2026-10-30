@@ -71,7 +71,7 @@ tucked under its back. A coral line runs along its inner edge, and an "attention
   someone pays it real attention.
 - **Signature moves:** fast curved darts, then a dead-still hover. Its bead points
   at whatever it wants. Smug is a heavy, flat lid line; innocent is two round, wide eyes.
-- **Palette:** eclipse `#1D1424`, lilac pearl eyes `#E8E3EE`, ember rose edge `#FF7A5C`.
+- **Palette:** eclipse `#1D1424`, lilac pearl eyes `#DCD2E8`, ember rose edge `#FF7A5C`.
 
 ## Series
 

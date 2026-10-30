@@ -485,7 +485,9 @@ def build_vesper(coll, P=None, tag="VES"):
     surf(f"{tag}_panel_back_calm", coll, "ves_mantle", 30, 150, 0.0, 1.36, 0.0, 0.03, petal=0.12)
     cres = surf(f"{tag}_mantle_crescent", coll, "ves_mantle", 175, 345, 0.0, 1.35, 0.05, 0.05, petal=0.45, twist=150,
                 edge_trim=f"{tag}_mantle_trim")
-    surf(f"{tag}_hood", coll, "ves_collar", -62, 242, 0.98, 1.42, 0.05, 0.09, flare=0.06, xoff=0.03, petal=0.2)
+    # second audit pass: no shoulder capes. The hood sits close, so the outline is a sloped column and the
+    # crescent sweep is the one big shape on the body
+    surf(f"{tag}_hood", coll, "ves_collar", -62, 242, 1.04, 1.42, 0.03, 0.05, flare=0.0, xoff=0.03, petal=0.2)
 
     neck_top = body_pt((0, -0.07, 0), 1.3)
     cylinder(f"{tag}_neck", coll, "ves_neck", body_pt((0, -0.02, 0), 1.2), neck_top, 0.05, 0.034)
@@ -781,7 +783,7 @@ PAL = {
     "antique_gold_dk": "#7A5F3A", "graphite": "#2D2A2A", "graphite_lt": "#3D3938", "vesper_pearl": "#E6E2DA",
     "dove_mauve": "#8E8089", "ink_deep": "#151A25",
     # Nix - theatrical, nosy, secretly shy: eclipse aubergine with an oil-slick sheen and an ember-rose edge
-    "eclipse": "#1D1424", "eclipse_fin": "#22182A", "lilac_pearl": "#E8E3EE", "ember_rose": "#FF7A5C", "bead": "#FFE3C8",
+    "eclipse": "#1D1424", "eclipse_fin": "#22182A", "lilac_pearl": "#DCD2E8", "ember_rose": "#FF7A5C", "bead": "#FFE3C8",
     # shared dream world
     "dream_glass": "#C9C3DE", "night_ground": "#191522", "night_ground_dk": "#110E18",
 }

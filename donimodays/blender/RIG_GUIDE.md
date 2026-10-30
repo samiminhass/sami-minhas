@@ -131,7 +131,8 @@ After the second audit, each character got the audit's "stronger design" option:
 - **Vesper:** the two side panels and the sleeve shells are replaced by one wide
   crescent sweep, from the right shoulder down under the left arm. The upper arms are
   fitted sleeves in mantle cloth. The forearms taper to a visible wrist, and the hands
-  are about 10 percent longer.
+  are about 10 percent longer. A second audit pass found the outline, with the halo hidden, still
+  read as a robe with shoulder capes, so the hood's flared capes were removed.
 - **Nix:** the fins are two small tufts tucked under the back curve, instead of a
   dorsal fin and a flipper. The bite is three scallops out of the lower edge. The face
   sits lower, where the crescent is widest, so the open eyes stay clear of the coral
