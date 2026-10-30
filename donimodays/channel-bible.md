@@ -1,5 +1,7 @@
 # donimodays: Channel Bible
 
+> **Status: paused and archived (30 October 2026).** See `archive/README.md` for where the cast stands and how to resume.
+
 This replaces the earlier Donimo, Pip, and Old Tock cast. The current cast is
 Morrow, Vesper, and Nix, built in Blender (see `blender/`). The earlier cast remains
 in this file's git history.

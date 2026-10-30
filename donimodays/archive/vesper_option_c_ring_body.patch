@@ -1,0 +1,369 @@
+diff --git a/donimodays/blender/cast_build.py b/donimodays/blender/cast_build.py
+index 6356815..43b9f1c 100644
+--- a/donimodays/blender/cast_build.py
++++ b/donimodays/blender/cast_build.py
+@@ -474,29 +474,85 @@ def sleeve(name, coll, part, a, b, r1, r2, seg=28):
+     bake_modifiers(ob)
+     return ob
+ 
++# ---- option C: Vesper's body IS the broken ring. A tall oval band stands on edge, open at the upper right
++# where the old halo's gap was. The face floats in the opening; the fragments are the band's missing pieces.
++RING_ZC, RING_A, RING_B = 0.88, 0.46, 0.82     # oval centre height and half-width/half-height of the centreline
++RING_W, RING_D = 0.06, 0.105                   # band half-thickness (in the ring plane) and half-depth (front to back)
++RING_ARC = (110, 340)                          # the band runs from just left of the top, down the left, round to the right
++FRAG_ANGLES, FRAG_HALF = (10, 45, 80), 10      # the three missing pieces fill the gap
++VES_FACE_S = 1.45                              # the mask, eyes, lids and brows are 1.45x their robe-era size
++
++def ring_pt(t_deg, rad=0.0, depth=0.0):
++    """Point on the band: t along the oval, rad across it (+ outward), depth front(-)/back(+). Follows the spine lean."""
++    t = math.radians(t_deg)
++    n = Vector((RING_B * math.cos(t), 0, RING_A * math.sin(t))).normalized()
++    c = Vector((RING_A * math.cos(t), 0, RING_ZC + RING_B * math.sin(t))) + n * rad
++    sp_ = spine(c.z)
++    return Vector((c.x + sp_.x, sp_.y + depth, c.z))
++
++def ring_band(name, coll, part, t0, t1, w=RING_W, d=RING_D, seg=120, ring=20, base_flare=0.6, inner=None, cap=None):
++    """Swept band along the oval from t0 to t1 degrees. Cross-section is a soft rounded rectangle.
++    inner: material part for faces looking into the hole. cap: material part for the two broken ends."""
++    bm = bmesh.new(); rings = []
++    for i in range(seg + 1):
++        tt = t0 + (t1 - t0) * i / seg
++        dd = d * (1 + base_flare * max(0.0, -math.sin(math.radians(tt))) ** 6)   # the base widens front to back to stand
++        row = []
++        for j in range(ring):
++            a = 2 * math.pi * j / ring
++            ca, sa = math.cos(a), math.sin(a)
++            r_ = math.copysign(abs(ca) ** 0.6, ca) * w; z_ = math.copysign(abs(sa) ** 0.6, sa) * dd
++            row.append(bm.verts.new(ring_pt(tt, r_, z_)))
++        rings.append(row)
++    for i in range(seg):
++        for j in range(ring):
++            bm.faces.new((rings[i][j], rings[i][(j + 1) % ring], rings[i + 1][(j + 1) % ring], rings[i + 1][j]))
++    caps = [bm.faces.new(list(reversed(rings[0]))), bm.faces.new(rings[-1])]
++    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
++    ob = finish(name, bm, coll, part)
++    me = ob.data
++    if inner:
++        me.materials.append(mat_for(inner)); ii = len(me.materials) - 1
++        for pg in me.polygons:
++            c = pg.center; t_ = math.atan2((c.z - RING_ZC) / RING_B, (c.x - spine(c.z).x) / RING_A)
++            n = Vector((RING_B * math.cos(t_), 0, RING_A * math.sin(t_))).normalized()
++            if pg.normal.dot(n) < -0.5:
++                pg.material_index = ii
++    if cap:
++        me.materials.append(mat_for(cap)); ci = len(me.materials) - 1
++        for k in (0, len(me.polygons) - 1):
++            me.polygons[k].material_index = ci
++    return ob
++
++def ves_arm_default(side):
++    """Shoulder, elbow and wrist at rest. The left arm grows from the band's inner rim, the right from its broken end."""
++    if side < 0:
++        sh = ring_pt(160, -RING_W - 0.01, -0.02)
++        el = sh + Vector((0.06, -0.12, -0.3))
++    else:
++        sh = ring_pt(RING_ARC[1] - 3, -RING_W * 0.4, -0.02)
++        el = sh + Vector((-0.1, -0.17, -0.06))
++    wr = Vector((side * 0.03 + 0.02, -0.3, 0.72 if side < 0 else 0.64))
++    return sh, el, wr
++
+ def build_vesper(coll, P=None, tag="VES"):
+     P = P or {}
+     BEND[0] = P.get("bend", 0.0)
+     root = new_root(f"{tag}_root", coll)
+-    surf(f"{tag}_core", coll, "ves_inner", 0, 360, 0.02, 1.33, dr=-0.025, closed=True, thick=0, nu=40)
+-    # redesign (audit option B): the side panels and sleeve shells are gone. One wide crescent sweep starts
+-    # high on the right shoulder and curls down under the left arm, so the body carries the halo's
+-    # broken-ring shape. The calm back panel stays; the lighter inner robe shows where the sweep opens.
+-    surf(f"{tag}_panel_back_calm", coll, "ves_mantle", 30, 150, 0.0, 1.36, 0.0, 0.03, petal=0.12)
+-    cres = surf(f"{tag}_mantle_crescent", coll, "ves_mantle", 175, 345, 0.0, 1.35, 0.05, 0.05, petal=0.45, twist=150,
+-                edge_trim=f"{tag}_mantle_trim")
+-    # second audit pass: no shoulder capes. The hood sits close, so the outline is a sloped column and the
+-    # crescent sweep is the one big shape on the body
+-    surf(f"{tag}_hood", coll, "ves_collar", -62, 242, 1.04, 1.42, 0.03, 0.05, flare=0.0, xoff=0.03, petal=0.2)
+-
+-    neck_top = body_pt((0, -0.07, 0), 1.3)
+-    cylinder(f"{tag}_neck", coll, "ves_neck", body_pt((0, -0.02, 0), 1.2), neck_top, 0.05, 0.034)
++    # redesign (audit option C): the body is the broken ring. Heather lines the hole, the broken ends are
++    # capped in antique gold (the same repair language as Morrow's kintsugi), and a worn gold edge runs
++    # along the front
++    ring_band(f"{tag}_ring", coll, "ves_mantle", RING_ARC[0], RING_ARC[1], inner="ves_inner", cap="ves_brass")
++    trim = [ring_pt(RING_ARC[0] + (RING_ARC[1] - RING_ARC[0]) * i / 40, RING_W * 0.85, -RING_D * 0.92) for i in range(41)]
++    curve(f"{tag}_ring_trim", coll, "ves_trim", trim, 0.006, [0.4] + [1.0] * 39 + [0.4])
++    neck_top = body_pt((0, -0.07, 0), 1.3)    # no neck: the mask floats in the ring's opening
+ 
+     # upgrade 1: dark carved stone mask with a crescent side profile. eyes are the lightest value
+     tilt = P.get("head_tilt", (6, -8, 0))
+     Rh = Euler([math.radians(a) for a in tilt]).to_matrix().to_4x4()
+     M = neck_top + Vector((0, -0.03, 0.15))
+-    head = lambda p: M + (Rh @ Vector(p))
++    HS = VES_FACE_S                       # option C: a bigger face, so it holds its own against the ring
++    head = lambda p: M + (Rh @ (Vector(p) * HS))
+     hq = Rh.to_quaternion()
+     bm = bmesh.new()
+     bmesh.ops.create_uvsphere(bm, u_segments=22, v_segments=16, radius=1)
+@@ -506,11 +562,11 @@ def build_vesper(coll, P=None, tag="VES"):
+         yy = y * 0.052
+         if y < 0:  # front face: brow and chin push forward, the middle recedes -> crescent profile
+             yy -= 0.03 * z * z + 0.012 * max(0, z)
+-        vt.co = (x * w, yy, z * 0.108)
++        vt.co = (x * w * HS, yy * HS, z * 0.108 * HS)
+     xform(bm, Matrix.Translation(M) @ Rh)
+     mask = finish(f"{tag}_mask", bm, coll, "ves_mask")
+     for side in (-1, 1):
+-        sock = sphere("tmp_sock", coll, "ves_mask", head((side * 0.029, -0.07, 0.012)), (0.028, 0.04, 0.024), rot=hq)
++        sock = sphere("tmp_sock", coll, "ves_mask", head((side * 0.029, -0.07, 0.012)), (0.028 * HS, 0.04 * HS, 0.024 * HS), rot=hq)
+         boolean(mask, sock)
+     mask.data.set_sharp_from_angle(angle=math.radians(22))   # faceted, carved look
+     lid = P.get("lids", (0.4, 0.3))
+@@ -518,49 +574,41 @@ def build_vesper(coll, P=None, tag="VES"):
+     for i, side in enumerate((-1, 1)):
+         k = 'L' if side < 0 else 'R'
+         ec = head((side * 0.029, -0.05, 0.012))
+-        sphere(f"{tag}_eye_{k}", coll, "ves_eye", ec, r=0.0175)
++        sphere(f"{tag}_eye_{k}", coll, "ves_eye", ec, r=0.0175 * HS)
+         bm = bmesh.new()
+-        bmesh.ops.create_uvsphere(bm, u_segments=28, v_segments=16, radius=0.0202)
++        bmesh.ops.create_uvsphere(bm, u_segments=28, v_segments=16, radius=0.0202 * HS)
+         bmesh.ops.delete(bm, geom=[vv for vv in bm.verts if vv.co.z < 0.001], context='VERTS')
+         xform(bm, Matrix.Translation(ec) @ Rh @ basis(Vector((-1, 0, 0)), Vector((0, -1, 0)), Vector((0, 0, 1))) @ Matrix.Rotation(math.radians(70 - 140 * lid[i]), 4, 'X'))
+         finish(f"{tag}_lid_{k}", bm, coll, "ves_lid")
+         bm = bmesh.new()
+-        bmesh.ops.create_uvsphere(bm, u_segments=28, v_segments=16, radius=0.0198)
++        bmesh.ops.create_uvsphere(bm, u_segments=28, v_segments=16, radius=0.0198 * HS)
+         bmesh.ops.delete(bm, geom=[vv for vv in bm.verts if vv.co.z > -0.001], context='VERTS')
+         low = P.get("lower", (0.15, 0.15))[i]
+         xform(bm, Matrix.Translation(ec) @ Rh @ basis(Vector((-1, 0, 0)), Vector((0, -1, 0)), Vector((0, 0, 1))) @ Matrix.Rotation(math.radians(-70 + 120 * low), 4, 'X'))
+         finish(f"{tag}_lowlid_{k}", bm, coll, "ves_lid")
+         b0 = head((side * 0.008, -0.078, 0.043 + brow[i] * 0.3)); b1 = head((side * 0.055, -0.062, 0.04 + brow[i]))
+-        curve(f"{tag}_brow_{k}", coll, "ves_brow", [b0, (b0 + b1) / 2 + Rh @ Vector((0, -0.006, 0.006)), b1], 0.0085, [1, 1.2, .7])
++        curve(f"{tag}_brow_{k}", coll, "ves_brow", [b0, (b0 + b1) / 2 + Rh @ Vector((0, -0.006 * HS, 0.006 * HS)), b1], 0.0085 * HS, [1, 1.2, .7])
+ 
+     # upgrade 5: halo and fragments twice as thick, fragments chunkier
+     hc = head((0, 0.045, 0.02))
+     Rt = Rh @ Euler((math.radians(-22), 0, math.radians(14))).to_matrix().to_4x4()
+     U = Rt @ Vector((1, 0, 0)); V = Rt @ Vector((0, 0, 1))
+-    tube_arc(f"{tag}_halo", coll, "ves_brass", hc, 0.17, 0.024, 104, 346, U, V, seg=72, rscale=(1.0, 1.5))
+-    for i, ang in enumerate((104, 346)):
+-        tube_arc(f"{tag}_halo_break_{i+1}", coll, "ves_brass", hc, 0.17, 0.024, ang - (5 if i else 0), ang + (0 if i else 5), U, V,
+-                 seg=4, ring=12, rscale=(1.0, 1.5), jitter=0.06, seed=11 + i)   # clean fracture at the ring's own thickness
+-    frag = P.get("fragments", [(0.245, 18, 0), (0.265, 52, 1), (0.245, 88, 2)])   # clear of the ring and of each other
+-    for i, (rad, ang, seed) in enumerate(frag):
+-        o = tube_arc(f"{tag}_fragment_{i+1}", coll, "ves_brass", hc, rad, 0.02, ang - 13 - seed * 2, ang + 13, U, V,
+-                     seg=14, ring=12, rscale=(1.0, 1.35), jitter=0.22, seed=seed + 3)
+-        o.data.set_sharp_from_angle(angle=math.radians(35))
++    for i, ang in enumerate(FRAG_ANGLES):       # the missing pieces of the band, in antique gold
++        o = ring_band(f"{tag}_fragment_{i+1}", coll, "ves_brass", ang - FRAG_HALF, ang + FRAG_HALF, w=RING_W * 0.92,
++                      d=RING_D * 0.9, seg=16, ring=16, base_flare=0.0)
++        o.data.set_sharp_from_angle(angle=math.radians(40))
+ 
+     # upgrade 8: much longer hands. one can arch over Morrow's head
+     arms = P.get("arms", {})
+     for side in (-1, 1):
+         k = 'L' if side < 0 else 'R'
+-        sh = body_pt((side * 0.19 + 0.03, -0.02, 0), 1.1)
++        sh, el, wr = ves_arm_default(side)
+         if k in arms:
+             el, wr = Vector(arms[k][0]), Vector(arms[k][1])
+-        else:
+-            el = sh + Vector((side * 0.07, -0.06, -0.34))
+-            wr = Vector((side * 0.03 + 0.02, -0.3, 0.72 if side < 0 else 0.64))
+         sphere(f"{tag}_shoulderjoint_{k}", coll, "ves_arm", sh, r=0.034)
+-        cylinder(f"{tag}_upperarm_{k}", coll, "ves_mantle", sh, el, 0.046, 0.036)   # fitted sleeve in mantle cloth
++        cylinder(f"{tag}_upperarm_{k}", coll, "ves_mantle", sh, el, 0.055, 0.044)   # fitted sleeve in mantle cloth
+         sphere(f"{tag}_elbow_{k}", coll, "ves_mantle", el, r=0.037)
+-        cylinder(f"{tag}_forearm_{k}", coll, "ves_arm", el, wr, 0.034, 0.017)   # option B: tapers to a visible wrist
++        cylinder(f"{tag}_forearm_{k}", coll, "ves_arm", el, wr, 0.038, 0.02)   # tapers to a visible wrist
+         fwd = Vector(arms.get(k + "_fwd", (Vector((-side * 0.35, -0.25, -0.9)) if k not in arms else (wr - el)))).normalized()
+         sidev = Vector(arms.get(k + "_side", (side * 0.2, -1, 0) if k not in arms else fwd.cross(Vector((0, 0, 1))).normalized() * side))
+         hand(f"{tag}_hand_{k}", coll, "ves_hand", wr, fwd, sidev, 0.155, fingers=3, curl=arms.get(k + "_curl", 0.6), thick=0.1)
+@@ -1320,6 +1368,7 @@ def rig_vesper(root, tag="VES"):
+     hc = M + (Rh @ Vector((0, 0.045, 0.02)))
+     Rt = Rh @ Euler((math.radians(-22), 0, math.radians(14))).to_matrix().to_4x4()
+     U = Rt @ Vector((1, 0, 0)); V = Rt @ Vector((0, 0, 1)); N = U.cross(V).normalized()
++    RC = Vector((spine(RING_ZC).x, spine(RING_ZC).y, RING_ZC))   # ring centre
+     VFP = {}
+     hright = (Rh @ Vector((1, 0, 0))).normalized(); hup = (Rh @ Vector((0, 0, 1))).normalized(); hout = (Rh @ Vector((0, -1, 0))).normalized()
+     B = [dict(name="root", head=(0, 0, 0), tail=(0, -0.15, 0)),
+@@ -1328,10 +1377,11 @@ def rig_vesper(root, tag="VES"):
+          dict(name="spine_3", head=sp[2], tail=sp[3], parent="spine_2", up=(0, -1, 0)),
+          dict(name="neck", head=sp[3], tail=neck_top, parent="spine_3", up=(0, -1, 0)),
+          dict(name="head", head=M, tail=M + hup * 0.08, parent="neck", up=hout),
+-         dict(name="halo", head=hc, tail=hc + N * 0.05, parent="head", up=V),
++         # the "halo" bone now carries the band's missing pieces from the ring centre, following the upper body
++         dict(name="halo", head=RC, tail=RC + Vector((0, -0.05, 0)), parent="spine_3", up=(0, 0, 1)),
+          dict(name="eye_target", head=M + hout * 0.5, tail=M + hout * 0.5 + Vector((0, 0, 0.04)), parent="head")]
+-    for i in range(3):
+-        B.append(dict(name=f"fragment_{i+1}", head=hc, tail=hc + N * 0.04, parent="halo", up=V))
++    for i in range(3):   # bone Y along the ring's normal: rotation Y slides a piece along the gap, rotation X swings it forward
++        B.append(dict(name=f"fragment_{i+1}", head=RC, tail=RC + Vector((0, -0.04, 0)), parent="halo", up=(0, 0, 1)))
+     # mantle follow bones: they copy the spine, plus a baked delay offset (see bake_follow_through)
+     for i in range(3):
+         B.append(dict(name=f"mantle_{i+1}", head=sp[i], tail=sp[i + 1], parent=("root" if i == 0 else f"mantle_{i}"), up=(0, -1, 0)))
+@@ -1341,9 +1391,7 @@ def rig_vesper(root, tag="VES"):
+               dict(name=f"lid_low_{k}", head=ec, tail=ec + hright * 0.02, parent="head", up=hup)]
+         bp = curve_pts(O[f"{tag}_brow_{k}"])
+         B.append(dict(name=f"brow_{k}", head=bp[1], tail=bp[1] + hout * 0.02, parent="head", up=hup))
+-        sh = body_pt((side * 0.19 + 0.03, -0.02, 0), 1.1)
+-        el = sh + Vector((side * 0.07, -0.06, -0.34))
+-        wr = Vector((side * 0.03 + 0.02, -0.3, 0.72 if side < 0 else 0.64))
++        sh, el, wr = ves_arm_default(side)
+         palm = bbox_center(O[f"{tag}_hand_{k}_palm"])
+         B += [dict(name=f"upperarm_{k}", head=sh, tail=el, parent="spine_3", up=(0, -1, 0)),
+               dict(name=f"forearm_{k}", head=el, tail=wr, parent=f"upperarm_{k}", up=(0, -1, 0)),
+@@ -1359,15 +1407,10 @@ def rig_vesper(root, tag="VES"):
+ 
+     # deforming mantle: smooth weights along the spine
+     chain, pts = ["mantle_1", "mantle_2", "mantle_3"], sp
+-    for nm in ("core", "panel_back_calm", "mantle_crescent", "hood"):
+-        skin(O[f"{tag}_{nm}"], rig, chain, pts, blend=1.0)
+-    tm = to_mesh(O[f"{tag}_mantle_trim"]); skin(tm, rig, chain, pts, blend=1.0)
+-    bone_parent(O[f"{tag}_neck"], rig, "neck")
++    skin(O[f"{tag}_ring"], rig, chain, pts, blend=1.0)
++    tm = to_mesh(O[f"{tag}_ring_trim"]); skin(tm, rig, chain, pts, blend=1.0)
+     for nm in ("mask",):
+         bone_parent(O[f"{tag}_{nm}"], rig, "head")
+-    bone_parent(O[f"{tag}_halo"], rig, "halo")
+-    for i in (1, 2):
+-        bone_parent(O[f"{tag}_halo_break_{i}"], rig, "halo")
+     for i in range(3):
+         bone_parent(O[f"{tag}_fragment_{i+1}"], rig, f"fragment_{i+1}")
+     for k in ("L", "R"):
+@@ -1409,25 +1452,31 @@ def rig_vesper(root, tag="VES"):
+     for k, sgn in (("L", -1), ("R", 1)):
+         add_prop(rig, f"brow_tilt_{k}", 0, -1, 1, "Inner end up for concern (+), down for sternness (-)")
+         fc = drive(rig.pose.bones[f"brow_{k}"], "rotation_euler", 1, f"{-sgn}*0.4*w", rig, []); var(fc, "w", f"brow_tilt_{k}")
+-    add_prop(rig, "halo_level", 0.6, 0, 1, "How much the halo counters the bow, staying nearer upright")
++    add_prop(rig, "halo_level", 0.6, 0, 1, "How much the missing pieces counter the bow, staying nearer their rest place")
+     fc = rig.pose.bones["halo"].driver_add("rotation_euler", 0); fc.driver.type = 'SCRIPTED'
+-    for nm_, bn_ in (("a", "spine_2"), ("b", "spine_3"), ("c", "neck"), ("d", "head")):
++    for nm_, bn_ in (("a", "spine_2"), ("b", "spine_3")):     # the pieces hang from spine_3 now, not the head
+         v_ = fc.driver.variables.new(); v_.name = nm_; v_.type = 'TRANSFORMS'
+         v_.targets[0].id = rig; v_.targets[0].bone_target = bn_
+         v_.targets[0].transform_type = 'ROT_X'; v_.targets[0].transform_space = 'LOCAL_SPACE'
+     var(fc, "h", "halo_level")
+-    fc.driver.expression = "-h*(a+b+c+d)"
++    fc.driver.expression = "-h*(a+b)"
+     HALO_FC[0] = fc
+     add_prop(rig, "frag_shelter", 0, 0, 1, "Fragments swing round into a partial sheltering arc")
+     add_prop(rig, "frag_spread", 0, -1, 1, "Fragments bunch together (-) or spread apart (+)")
+     add_prop(rig, "frag_fluster", 0, 0, 1, "Loss of composure: fragment spacing becomes uneven")
+     # measured collision-free against hood, mantle and each other for every shelter/spread/fluster combination:
+-    # 120 deg shelter arc, a gentle bunch (4 deg), spread and fluster damped while sheltering
+-    jitter = (-22, -2, 6)
++    # option C: spread and fluster slide the pieces along the gap (rotation Y, + toward the top end), sized so
++    # they never reach the band's broken ends; shelter swings them forward over whoever Vesper protects
++    # (rotation X, - is forward). The top piece sits right above the floating face, so it tips BACK instead,
++    # like a crown lifting, while the two side pieces close forward
++    jitter = (-8, 2, 4)
+     for i in range(3):
+         fc = drive(rig.pose.bones[f"fragment_{i+1}"], "rotation_euler", 1,
+-                   f"radians(120*s + {i-1}*(22*(1-0.7*s)*max(p,0) + 4*min(p,0)) + {jitter[i]}*f*(1-0.5*s))", rig, [])
+-        var(fc, "s", "frag_shelter"); var(fc, "p", "frag_spread"); var(fc, "f", "frag_fluster")
++                   f"radians({(1.0, 0.6, 0.35)[i]}*({i-1}*(8*max(p,0) + 4*min(p,0)) + {jitter[i]}*f))", rig, [])
++        # (a turn about the centre of a tall oval travels much further near the top, so the top pieces turn less)
++        var(fc, "p", "frag_spread"); var(fc, "f", "frag_fluster")
++        fc = drive(rig.pose.bones[f"fragment_{i+1}"], "rotation_euler", 0, f"radians({(-70, -62, 40)[i]}*s)", rig, [])
++        var(fc, "s", "frag_shelter")
+     rig.parent = root
+     return rig
+ 
+@@ -1514,17 +1563,7 @@ for r in (mor, ves, nix):
+     r.location = (0, 0, 0); r.rotation_euler = (0, 0, 0)
+ upd()
+ apply_color()
+-# heather on the inside faces of Vesper's mantle panels
+-for nm in ("panel_back_calm", "mantle_crescent", "hood"):
+-    ob = bpy.data.objects[f"VES_{nm}"]
+-    me = ob.data
+-    me.materials.append(MATS["ves_inner"])
+-    for pg in me.polygons:
+-        c = pg.center
+-        axis = spine(c.z)
+-        radial = Vector((c.x - axis.x, c.y - axis.y, 0))
+-        if pg.normal.dot(radial) < 0:
+-            pg.material_index = len(me.materials) - 1
++# (Vesper's heather lining is assigned by ring_band, on the faces that look into the hole)
+ 
+ C_WGT = make_coll("WGT_widgets"); C_WGT.hide_render = True; C_WGT.hide_viewport = True
+ def widget(name, kind):
+@@ -1595,9 +1634,9 @@ _vr = RIGS["vesper"][1]
+ for _b, _a in (("spine_2", 0.3), ("spine_3", 0.27), ("neck", 0.22)):
+     _vr.pose.bones[_b].rotation_euler = (_a, 0, 0)
+ upd(); _with = _halo_tilt(_vr)
+-HALO_FC[0].driver.expression = "h*(a+b+c+d)"; upd(); _flip = _halo_tilt(_vr)
++HALO_FC[0].driver.expression = "h*(a+b)"; upd(); _flip = _halo_tilt(_vr)
+ if _with <= _flip:
+-    HALO_FC[0].driver.expression = "-h*(a+b+c+d)"
++    HALO_FC[0].driver.expression = "-h*(a+b)"
+ _vr["halo_level"] = 0.0; upd(); _none = _halo_tilt(_vr); _vr["halo_level"] = 0.6
+ for _b in ("spine_2", "spine_3", "neck"):
+     _vr.pose.bones[_b].rotation_euler = (0, 0, 0)
+diff --git a/donimodays/blender/stage5_rigging.py b/donimodays/blender/stage5_rigging.py
+index e487320..d639b93 100644
+--- a/donimodays/blender/stage5_rigging.py
++++ b/donimodays/blender/stage5_rigging.py
+@@ -53,7 +53,7 @@ CONTROL_TESTS = {
+             ("lid_close", 1, "NIX_eye_L"), ("lid_mischief", 1, "NIX_eye_R"), ("lid_innocent", 1, "NIX_eye_L")],
+ }
+ BONE_TESTS = {"morrow": [("hand_IK_L", (0.05, -0.1, 0.12), "MOR_arm_L"), ("body", None, "MOR_torso"), ("eye_target", (0.2, 0, 0.1), "MOR_pupil_R")],
+-              "vesper": [("hand_IK_R", (-0.15, -0.2, 0.3), "VES_forearm_R"), ("spine_2", None, "VES_mantle_crescent"), ("head", None, "VES_halo")],
++              "vesper": [("hand_IK_R", (-0.15, -0.2, 0.3), "VES_forearm_R"), ("spine_2", None, "VES_ring"), ("head", None, "VES_mask")],
+               "nix": [("root", None, "NIX_body")]}
+ 
+ passed = failed = 0
+@@ -335,6 +335,19 @@ for _s in (0, 0.3, 0.6, 0.8, 0.9, 1.0):
+ reset(r_)
+ ok = not _hits; passed += ok; failed += (not ok)
+ report(f"| vesper: fragments clear the robe and each other over 48 shelter/fluster/spread settings | {len(_hits)} collisions{': ' + '; '.join(_hits[:4]) if _hits else ''} | {'PASS' if ok else 'FAIL'} |")
++# ---------- the floating face and the arms stay clear of the ring body, at rest and in a bow
++_parts = [o.name for o in part_objects(RIGS["vesper"][0]) if o.type == 'MESH' and o.name.startswith(
++          ("VES_mask", "VES_eye", "VES_lid", "VES_lowlid", "VES_forearm", "VES_elbow", "VES_hand_"))]
++_hits = []
++for _bow in (0.0, 0.3):
++    reset(r_)
++    for _b in ("spine_2", "spine_3", "neck"):
++        r_.pose.bones[_b].rotation_euler = (_bow, 0, 0)
++    upd(); _ring = _bvh("VES_ring")
++    _hits += [f"bow {_bow}: {n}" for n in _parts if _bvh(n).overlap(_ring)]
++reset(r_)
++ok = not _hits; passed += ok; failed += (not ok)
++report(f"| vesper: the floating face, forearms and hands clear the ring, at rest and in a bow | {len(_hits)} collisions{': ' + '; '.join(_hits[:4]) if _hits else ''} | {'PASS' if ok else 'FAIL'} |")
+ report(f"\n**Total: {passed} passed, {failed} failed.**")
+ 
+ if OUT:
+diff --git a/donimodays/blender/stage6_personality_test.py b/donimodays/blender/stage6_personality_test.py
+index 3ffb748..2d773da 100644
+--- a/donimodays/blender/stage6_personality_test.py
++++ b/donimodays/blender/stage6_personality_test.py
+@@ -23,7 +23,7 @@ set_visible([C_MOR, C_VES, C_NIX])
+ C_S6 = make_coll("SCENE_Stage6")
+ 
+ MOR_POS, MOR_ROT = Vector((0.0, 0.0, 0.0)), -20
+-VES_POS, VES_ROT = Vector((0.36, 0.30, 0.0)), -35
++VES_POS, VES_ROT = Vector((0.2, 0.34, 0.0)), -12   # option C: the ring faces the camera, Morrow stands framed in front of it
+ FRAG = Vector((-0.30, -0.24, 0.42))
+ mor.location = MOR_POS; mor.rotation_euler = (0, 0, math.radians(MOR_ROT))
+ ves.location = VES_POS; ves.rotation_euler = (0, 0, math.radians(VES_ROT))
+@@ -311,7 +311,7 @@ def where(ob_name, f):
+     pts = [ob.matrix_world @ Vector(c_) for c_ in ob.bound_box]
+     return sum(pts, Vector()) / 8
+ 
+-WIDE_T, WIDE_V = Vector((-0.1, -0.1, 0.86)), (0.05, -1.0, 0.1)
++WIDE_T, WIDE_V = Vector((0.02, -0.1, 0.88)), (0.05, -1.0, 0.1)
+ morrow_face_62 = where("MOR_face", 62)
+ nix_118 = where("NIX_body", 122)
+ _faces = [where("MOR_face", f) for f in range(67, 85)]
+@@ -360,8 +360,10 @@ def _bvh(o):
+     t = _BVH.FromPolygons([oe.matrix_world @ v.co for v in me.vertices], [tuple(p.vertices) for p in me.polygons]); oe.to_mesh_clear(); return t
+ _O = bpy.data.objects
+ _pairs = [("Nix vs fragment", [o for o in _O if o.name.startswith(("NIX_body", "NIX_edge"))], [frag], range(40, 70)),
+-          ("Vesper hands vs mantle", [o for o in _O if o.name.startswith("VES_hand_") and o.type == 'MESH'],
+-           [_O["VES_mantle_crescent"], _O["VES_panel_back_calm"], _O["VES_hood"]], range(60, 120)),
++          ("Vesper hands vs ring body", [o for o in _O if o.name.startswith("VES_hand_") and o.type == 'MESH'],
++           [_O["VES_ring"]], range(60, 120)),
++          ("Morrow vs Vesper's ring and pieces", [o for o in _O if o.name.startswith("MOR_") and o.type == 'MESH' and o.visible_get()],
++           [_O["VES_ring"], _O["VES_fragment_1"], _O["VES_fragment_2"], _O["VES_fragment_3"]], range(F0, F1 + 1, 2)),
+           ("Vesper hand vs Morrow crest", [o for o in _O if o.name.startswith("VES_hand_") and o.type == 'MESH'],
+            [_O["MOR_crest"], _O["MOR_crest_fork"]], range(60, 120))]
+ for _nm, _a, _b, _fr in _pairs:
