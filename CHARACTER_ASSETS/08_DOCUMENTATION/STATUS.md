@@ -2,7 +2,7 @@
 
 | Item | Status |
 |------|--------|
-| Character Bible v0.3 (adds production specifications; v0.1 and v0.2 kept) | Draft, EP scored v0.2 at 8.5/10, awaiting approval |
+| Character Bible v0.4 (self-audit fixes; v0.1-v0.3 kept) | Draft, EP scored v0.2 at 8.5/10, awaiting approval of all Proposal items |
 | Girl (Character 01) | Approved reference; identity drafted; name pending |
 | Baker (Character 02) | Approved reference; identity drafted; name pending |
 | Inventor Boy (Character 03) | Proposed concept only |
