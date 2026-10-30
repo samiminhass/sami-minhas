@@ -1,18 +1,15 @@
-# Character Lab Status
+# Character Lab Status (Session 01)
 
 | Item | Status |
 |------|--------|
-| Character Bible v0.4 (self-audit fixes; v0.1-v0.3 kept) | Draft, EP scored v0.2 at 8.5/10, awaiting approval of all Proposal items |
-| Girl (Character 01) | Approved reference; identity drafted; name pending |
-| Baker (Character 02) | Approved reference; identity drafted; name pending |
-| Inventor Boy (Character 03) | Proposed concept only |
-| Flower Grandmother (Character 04) | Proposed concept only |
-| Turnaround sheets (front/side/back/3-4) | Not started |
-| Expression sheets (visual) | Not started; written specs in bible |
-| Blender assets | Not started. Blender is not installed in the Character Lab environment. |
+| Character Bible v0.5 | Names, world (village: Kestrava) and relationships approved by EP. Submitted to Audit Studio for formal review. v0.1-v0.4 kept. |
+| Mila (CHR01) | Approved. Ready for Blender blockout. |
+| Borek (CHR02) | Approved. Archetype refinements awaiting EP. Ready for Blender blockout. |
+| Pim (CHR03) | Name approved; character still proposed. Recommended direction: The Fixer. |
+| Vela (CHR04) | Name approved; character still proposed. Recommended direction: The Botanist. |
+| Blender environment | Blender 5.2.3 LTS (bpy) installed headless. Cycles CPU, Workbench verified; EEVEE via software graphics (slow). Setup: `STUDIO_DIRECTIVES/setup_blender.sh`. |
+| Turnaround and expression sheets | To be produced as renders of the Blender blockouts. |
+| Blender assets | Not started. Next step after audit feedback: Mila and Borek primary blockouts. |
 
-Reference images: `02_REFERENCE/source_images/`. Images 3 and 4 are inspiration for proposed characters, not approved designs.
-
-Shared studio directives live in `/STUDIO_DIRECTIVES/`. Current: `SHORT_FORM_DISTRIBUTION_DIRECTIVE.md` (9:16 short-form, 15-45 s, YouTube/TikTok/Instagram).
-
-Addendum 01 (`STUDIO_DIRECTIVES/ADDENDUM_01_RESPONSIBILITIES_AND_DURATIONS.md`): Character Lab responsibility is characters, expressions and assets that read clearly in vertical mobile video. Duration tiers for testing are 15 s, 25-30 s and 40-45 s.
+Studio-wide documents: `STUDIO_DIRECTIVES/` (roster, EP decisions, directives, Blender setup).
+Reference images: `02_REFERENCE/source_images/`. Images 3 and 4 inspire proposed characters only.
