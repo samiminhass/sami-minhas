@@ -123,20 +123,21 @@ for f, r in body:
 scene.frame_set(F0)
 B0 = (MR.matrix_world @ MR.pose.bones["body"].matrix).to_translation()
 FT0 = {k: (MR.matrix_world @ MR.pose.bones[f"foot_{k}"].matrix).to_translation() for k in ("L", "R")}
-for f, d, hop in ((F0, 0.0, 0.0), (24, 0.0, 0.0), (31, 0.045, 0.006), (35, 0.05, 0.0), (40, 0.08, 0.004), (58, 0.08, 0.0),
-                  (60, 0.075, 0.012), (62, 0.04, 0.035), (64, 0.035, 0.0), (F1, 0.035, 0.0)):
+# the body stays about midway between the planted feet, so the stretchy legs stay near their rest length
+for f, d, hop in ((F0, 0.0, 0.0), (24, 0.0, 0.0), (31, 0.03, 0.004), (35, 0.035, 0.0), (40, 0.075, 0.003), (58, 0.078, 0.0),
+                  (60, 0.074, 0.008), (62, 0.045, 0.022), (64, 0.035, 0.0), (F1, 0.035, 0.0)):
     kworld(MR, "body", f, B0 + mdir * d + Vector((0, 0, hop)))
-steps_L = ((F0, 0.0, 0.0), (25, 0.0, 0.0), (28, 0.03, 0.02), (31, 0.06, 0.0), (58, 0.06, 0.0), (60, 0.055, 0.015), (63, 0.02, 0.0), (F1, 0.02, 0.0))
-steps_R = ((F0, 0.0, 0.0), (35, 0.0, 0.0), (37, 0.045, 0.018), (40, 0.095, 0.0), (58, 0.095, 0.0), (60, 0.09, 0.015), (63, 0.05, 0.0), (F1, 0.05, 0.0))
+steps_L = ((F0, 0.0, 0.0), (25, 0.0, 0.0), (28, 0.03, 0.02), (31, 0.06, 0.0), (58, 0.06, 0.0), (60, 0.055, 0.012), (62, 0.035, 0.02), (64, 0.02, 0.0), (F1, 0.02, 0.0))
+steps_R = ((F0, 0.0, 0.0), (35, 0.0, 0.0), (37, 0.045, 0.018), (40, 0.095, 0.0), (58, 0.095, 0.0), (60, 0.09, 0.012), (62, 0.07, 0.02), (64, 0.05, 0.0), (F1, 0.05, 0.0))
 for k, steps_ in (("L", steps_L), ("R", steps_R)):
     for f, d, lift in steps_:
         kworld(MR, f"foot_{k}", f, FT0[k] + mdir * d + Vector((0, 0, lift)))
 # expressions through the story
 for f, v in ((44, 0.1), (56, 0.25), (58, 0.25), (61, -0.85), (90, -0.85), (100, -0.2), (F1, -0.15)):
     kprop(MR, "mouth_smile", f, v)
-for f, v in ((57, 1.0), (62, -1.0), (88, -1.0), (102, -0.3), (F1, -0.3)):
+for f, v in ((57, 1.0), (60, 0.2), (64, -0.75), (67, -1.0), (88, -1.0), (102, -0.3), (F1, -0.3)):   # fast start, eased landing
     kprop(MR, "crest_mood", f, v)
-for f, v in ((57, 0.0), (62, -0.6), (90, -0.6), (104, -0.2), (F1, -0.2)):
+for f, v in ((59, 0.0), (66, -0.55), (69, -0.6), (90, -0.6), (104, -0.2), (F1, -0.2)):           # lean trails by 2-3 frames
     kprop(MR, "crest_lean", f, v)
 for k in ("L", "R"):
     for f, v in ((57, 0.05), (60, 0.0), (90, 0.0), (104, 0.15), (F1, 0.15)):
@@ -185,7 +186,7 @@ path = [(F0, NIX_START), (38, NIX_START), (43, NIX_MID), (48, NIX_TOUCH + Vector
 for f, p_ in path:
     nix.location = p_; nix.keyframe_insert("location", frame=f)
 for f, r in ((F0, (0, 0.6, -0.6)), (38, (0, 0.6, -0.6)), (44, (0, 0.9, -0.2)), (49, (0, 0.15, 0.25)), (56, (0, 0.15, 0.25)),
-             (61, (0, -0.2, 0.3)), (96, (0, -0.2, 0.3)), (110, (0, -0.1, 0.5)), (120, (0, 0.07, 0.45)), (124, (0, 0.05, 0.47)), (130, (0, 0.0, 1.5)), (F1, (0, 0.0, 1.52))):
+             (61, (0, -0.2, 0.3)), (96, (0, -0.2, 0.3)), (110, (0, -0.1, 0.5)), (120, (0, 0.07, 0.45)), (124, (0, 0.05, 0.47)), (130, (0, 0.0, 1.5)), (146, (0, 0.0, 1.52)), (154, (0, 0.03, 0.95)), (F1, (0, 0.03, 0.92))):
     nix.rotation_euler = r; nix.keyframe_insert("rotation_euler", frame=f)
 for f, (fa, fb_, sw) in ((38, (0, 0, 0)), (42, (0.3, 0.3, 1.0)), (48, (0.6, 0.6, 0.5)), (51, (0.2, 0.2, 0)), (54, (1.0, 0.1, -0.3)),
                          (57, (1.0, 0.1, -0.3)), (60, (-1.0, -1.0, 0.2)), (70, (-0.3, -0.3, 0)), (100, (-0.3, -0.3, 0)),
@@ -195,6 +196,24 @@ for f, v in ((38, 0), (46, -80), (56, -95), (62, -60), (100, -60), (110, 60), (F
     kprop(NR, "attention", f, v)
 for f, (c, m_, i_) in ((48, (0, 0, 0)), (51, (0, 0.8, 0)), (57, (0, 0.8, 0)), (60, (0, 0, 0)), (100, (0, 0, 0)), (108, (0.25, 0, 1.0)), (F1, (0.25, 0, 1.0))):
     kprop(NR, "lid_close", f, c); kprop(NR, "lid_mischief", f, m_); kprop(NR, "lid_innocent", f, i_)
+
+# ================================================================ STAGE 6: Vesper's dry glance at Nix in the hold
+# measured, not guessed: try head turns at the last frame and keep the one whose gaze lands nearest Nix
+def ves_gaze_to_nix(f):
+    scene.frame_set(f)
+    h = VR.matrix_world @ VR.pose.bones["head"].head; e = VR.matrix_world @ VR.pose.bones["eye_target"].head
+    return math.degrees((e - h).angle(nix.matrix_world.translation - h))
+_g0 = ves_gaze_to_nix(F1)
+_best = None
+for _x in (-0.1, 0.0, 0.1, 0.2):
+    for _z in [i_ / 10 for i_ in range(-8, 9)]:
+        kbone(VR, "head", F1, rot=(_x, -0.1, _z))
+        _a = ves_gaze_to_nix(F1)
+        if _best is None or _a < _best[0]:
+            _best = (_a, (_x, -0.1, _z))
+kbone(VR, "head", 128, rot=(0.05, -0.1, -0.15))          # still looking at Morrow as Nix starts to hide
+kbone(VR, "head", 136, rot=_best[1]); kbone(VR, "head", F1, rot=_best[1])
+print(f"VESPER GLANCE gaze-to-Nix {_g0:.1f} deg before, {_best[0]:.1f} deg after, head {_best[1]}", flush=True)
 
 # ================================================================ STAGE 6: IK and look targets (need parents evaluated)
 mor_side = min(("L", "R"), key=lambda k: ((MR.matrix_world @ MR.pose.bones[f"hand_IK_{k}"].head) - FRAG).length)
@@ -237,6 +256,11 @@ def ves_chest(f, side_off=0.0, fwd=0.2, up=0.27):
 for f in (F0, 64):
     kworld(VR, f"hand_IK_{v_oth}", f, v_rest2)
 kworld(VR, f"hand_IK_{v_oth}", 88, (VR.matrix_world @ VR.pose.bones[f"hand_IK_{v_oth}"].matrix).to_translation() if False else v_rest2)
+def ves_fwd(f):
+    scene.frame_set(f)
+    return ((VR.matrix_world @ VR.pose.bones["spine_3"].matrix).to_3x3() @ Vector((0, 0, 1))).normalized()
+kworld(VR, f"hand_IK_{v_oth}", 91, v_rest2.lerp(ves_chest(98), 0.3) + ves_fwd(91) * 0.06)   # arcs out in front of the mantle
+kworld(VR, f"hand_IK_{v_oth}", 94, v_rest2.lerp(ves_chest(98), 0.65) + ves_fwd(94) * 0.06)
 kworld(VR, f"hand_IK_{v_oth}", 98, ves_chest(98))                      # hand rises to its collar as it looks away
 kworld(VR, f"hand_IK_{v_oth}", 108, ves_chest(108, fwd=0.22))
 to_nix = (NIX_INNO - ves_chest(116)); to_nix.normalize()
@@ -273,13 +297,13 @@ def where(ob_name, f):
 WIDE_T, WIDE_V = Vector((-0.1, -0.1, 0.86)), (0.05, -1.0, 0.1)
 morrow_face_62 = where("MOR_face", 62)
 nix_118 = where("NIX_body", 122)
-_faces = [where("MOR_face", f) for f in range(67, 79)]
+_faces = [where("MOR_face", f) for f in range(67, 85)]
 cu_t = sum(_faces, Vector()) / len(_faces) + Vector((0, 0, 0.03))
 SHOTS = [  # (first frame, camera)
     (1, make_cam("CAM_1_wide_notice", WIDE_T, WIDE_V, 2.25, push=0.08, f_in=1, f_out=40)),
     (41, make_cam("CAM_2_insert_touch_flare", Vector((-0.27, -0.24, 0.46)), (0.3, -1.0, 0.1), 0.82, lens=50, push=0.03, f_in=41, f_out=66)),
-    (67, make_cam("CAM_3_closeup_startle", cu_t, (-0.25, -1.0, 0.06), 0.5, lens=60, push=0.0, f_in=67, f_out=78)),
-    (79, make_cam("CAM_4_medium_shelter", Vector((-0.14, -0.08, 0.84)), (0.1, -1.0, 0.1), 1.6, lens=45, push=0.06, f_in=79, f_out=112)),
+    (67, make_cam("CAM_3_closeup_startle", cu_t, (-0.25, -1.0, 0.06), 0.5, lens=60, push=0.0, f_in=67, f_out=84)),   # 0.75 s, so the startle reads
+    (85, make_cam("CAM_4_medium_shelter", Vector((-0.14, -0.08, 0.84)), (0.1, -1.0, 0.1), 1.6, lens=45, push=0.06, f_in=85, f_out=112)),
     (113, make_cam("CAM_5_closeup_innocent", nix_118 + Vector((-0.005, 0, 0.0)), (-0.4, -1.0, 0.06), 0.34, lens=60, push=0.01, f_in=113, f_out=132)),
     (133, make_cam("CAM_6_wide_final_hold", WIDE_T + Vector((0, 0, -0.02)), WIDE_V, 2.15, push=0.03, f_in=133, f_out=F1)),
 ]
@@ -305,6 +329,15 @@ for f in range(F0, F1 + 1):
         if a_ > worst_pupil[0]:
             worst_pupil = (a_, f)
 print(f"PUPIL CHECK worst {worst_pupil[0]:.1f} degrees at frame {worst_pupil[1]}", flush=True)
+_leg = [9, 0, 0, 0]
+for f in range(F0, F1 + 1):
+    scene.frame_set(f)
+    for k in ("L", "R"):
+        pb = MR.pose.bones[f"leg_{k}"]
+        r_ = (pb.tail - pb.head).length / MR.data.bones[f"leg_{k}"].length
+        if r_ < _leg[0]: _leg[0], _leg[2] = r_, f
+        if r_ > _leg[1]: _leg[1], _leg[3] = r_, f
+print(f"LEG CHECK length {_leg[0]:.2f}x (frame {_leg[2]}) to {_leg[1]:.2f}x (frame {_leg[3]}) of rest", flush=True)
 scene.frame_set(F0)
 
 # ================================================================ STAGE 6: render
