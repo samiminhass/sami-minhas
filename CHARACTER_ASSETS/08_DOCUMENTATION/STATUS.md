@@ -9,7 +9,7 @@
 | Vela (CHR04) | Name approved; character still proposed. Recommended direction: The Botanist. |
 | Blender environment | Blender 5.2.3 LTS (bpy) installed headless. Cycles CPU, Workbench verified; EEVEE via software graphics (slow). Setup: `STUDIO_DIRECTIVES/setup_blender.sh`. |
 | Turnaround and expression sheets | To be produced as renders of the Blender blockouts. |
-| Blender assets | Not started. Next: Mila and Borek primary blockouts with head-unit overlay renders (AUD-001 F1 acceptance). |
+| Blender assets | Blockout v001 built (03_MODEL/BLOCKOUT_v001, see REVIEW.md). Head counts pass F1. Seven findings to fix in v002 before audit submission. |
 
 Studio-wide documents: `STUDIO_DIRECTIVES/` (roster, EP decisions, directives, Blender setup).
 Reference images: `02_REFERENCE/source_images/`. Images 3 and 4 inspire proposed characters only.

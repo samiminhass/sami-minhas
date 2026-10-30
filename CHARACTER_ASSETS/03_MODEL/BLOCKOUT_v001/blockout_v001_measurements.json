@@ -1,0 +1,103 @@
+{
+  "blender": "5.2.3 LTS",
+  "CHR01_MILA": {
+    "crown_m": 1.15,
+    "chin_m": 0.84,
+    "top_incl_hair_m": 1.195,
+    "head_m": 0.31,
+    "heads": 3.71,
+    "heads_incl_hair": 3.37,
+    "width_front_m": 0.502,
+    "width_no_accessory_m": 0.456,
+    "width_to_height_no_accessory": 0.4,
+    "objects": 48,
+    "faces": 23282
+  },
+  "CHR02_BOREK": {
+    "crown_m": 1.55,
+    "chin_m": 1.16,
+    "top_incl_hair_m": 1.55,
+    "head_m": 0.39,
+    "heads": 3.97,
+    "heads_incl_hair": 3.97,
+    "width_front_m": 1.262,
+    "width_no_accessory_m": 1.104,
+    "width_to_height_no_accessory": 0.71,
+    "objects": 36,
+    "faces": 19474
+  },
+  "twoshots": {
+    "A_mila_near": {
+      "label": "A: Mila near, Borek mid-ground",
+      "bunny_px_360x640": [
+        56.7,
+        121.5
+      ],
+      "bunny_frame_height_pct": 19.0,
+      "one_stitch_x_px": [
+        8.3,
+        8.9
+      ],
+      "stitch_chain_px": [
+        9.3,
+        39.8
+      ],
+      "borek_eye_px": [
+        6.8,
+        6.8
+      ],
+      "mila_eye_px": [
+        17.7,
+        17.7
+      ]
+    },
+    "B_borek_near": {
+      "label": "B: Borek near, Mila far",
+      "bunny_px_360x640": [
+        36.5,
+        77.4
+      ],
+      "bunny_frame_height_pct": 12.1,
+      "one_stitch_x_px": [
+        5.3,
+        5.5
+      ],
+      "stitch_chain_px": [
+        5.9,
+        25.2
+      ],
+      "borek_eye_px": [
+        10.0,
+        10.1
+      ],
+      "mila_eye_px": [
+        11.2,
+        11.3
+      ]
+    },
+    "C_same_plane": {
+      "label": "C: same plane, Mila on a 25 cm step",
+      "bunny_px_360x640": [
+        39.5,
+        82.0
+      ],
+      "bunny_frame_height_pct": 12.8,
+      "one_stitch_x_px": [
+        5.7,
+        5.8
+      ],
+      "stitch_chain_px": [
+        6.1,
+        26.7
+      ],
+      "borek_eye_px": [
+        6.8,
+        6.8
+      ],
+      "mila_eye_px": [
+        11.9,
+        11.9
+      ]
+    }
+  }
+}
