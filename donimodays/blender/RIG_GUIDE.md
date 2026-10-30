@@ -79,9 +79,13 @@ The rigs are built by `stage5_rigging.py`, which also runs the tests in
 | `attention` | -230 to 70 degrees | Moves the bead around its incomplete orbit, toward whatever interests Nix |
 | `fin_A_flare`, `fin_B_flare` | -1 to 1 | Fin flares out or folds in |
 | `fin_A_sweep`, `fin_B_sweep` | -1 to 1 | Fin sweeps back or forward |
-| `lid_close` | 0 to 1 | Lids come down over both eyes |
+| `lid_close` | 0 to 1 | Lids come down over both eyes. At 1 a thin sliver stays visible |
+| `lid_rest` | 0 to 0.6 | How much the lids cover when relaxed. Default 0.25 |
 | `lid_mischief` | 0 to 1 | Lids slant inward: scheming |
 | `lid_innocent` | 0 to 1 | Lids slant outward: innocent |
+
+Nix's lids are live cuts. Each eye is cut by an invisible box on a `lid_L` or `lid_R`
+bone, so the lid edge stays clean at any setting and never sticks out past the body.
 
 | Bone | Use |
 | --- | --- |

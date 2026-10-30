@@ -1408,19 +1408,40 @@ def rig_nix(root, tag="NIX"):
     bone_parent(O[f"{tag}_bead"], rig, "attention")
     for k in ("A", "B"):   # stubby paddles: rigid, swinging from the base, so they can never tear
         bone_parent(O[f"{tag}_fin_{k}"], rig, f"fin_{k}")
-    # lid shape keys on the eye shapes: flatten the top of each eye toward a slanted cut line
+    # live lid cuts: each eye is a clean ellipsoid cut by an invisible box on a lid bone
+    body = O[f"{tag}_body"]; dep = 0.03
+    fc0 = Vector((-0.045, -dep / 2 - 0.0012, -0.004))
+    eye_c = {}
     for k, side in (("L", -1), ("R", 1)):
-        eo = O[f"{tag}_eye_{k}"]; me = eo.data
-        cz = sum((v.co.z for v in me.vertices)) / len(me.vertices); cx = sum((v.co.x for v in me.vertices)) / len(me.vertices)
-        top = max(v.co.z for v in me.vertices); bot = min(v.co.z for v in me.vertices); h = top - bot
-        eo.shape_key_add(name="Basis")
-        for key, cover, slant in (("lid_close", 0.85, 0), ("lid_slant_in", 0.45, -28), ("lid_slant_out", 0.45, 28)):
-            kb = eo.shape_key_add(name=key)
-            t = math.tan(math.radians(slant * side))
-            for i, v in enumerate(me.vertices):
-                line = top - cover * h + (v.co.x - cx) * t
-                if v.co.z > line:
-                    kb.data[i].co = Vector((v.co.x, v.co.y, line))
+        ec0 = fc0 + Vector((side * 0.0128, 0, side * -0.003))
+        hit_e, _ = raycast(body, (ec0.x, -1, ec0.z), (0, 1, 0))
+        eye_c[k] = hit_e + Vector((0, 0.0012, 0)) if hit_e is not None else ec0
+    with bpy.context.temp_override(scene=scene, view_layer=VL, active_object=rig, object=rig, selected_objects=[rig]):
+        VL.objects.active = rig
+        bpy.ops.object.mode_set(mode='EDIT')
+        for k in ("L", "R"):
+            eb = rig.data.edit_bones.new(f"lid_{k}"); eb.head = eye_c[k]; eb.tail = eye_c[k] + Vector((0, 0, 0.012))
+            eb.align_roll(Vector((0, -1, 0))); eb.parent = rig.data.edit_bones["body"]; eb.use_deform = False
+        bpy.ops.object.mode_set(mode='OBJECT')
+    for k in ("L", "R"):
+        rig.pose.bones[f"lid_{k}"].rotation_mode = 'XYZ'
+    for k, side in (("L", -1), ("R", 1)):
+        eo = O[f"{tag}_eye_{k}"]
+        rot = Euler((0, math.radians(side * 10), 0)).to_matrix().to_4x4()
+        bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=40, v_segments=28, radius=1)
+        xform(bm, Matrix.Translation(eye_c[k]) @ rot @ Matrix.Diagonal((0.0075, 0.0034, 0.012, 1)))
+        old = eo.data; me = bpy.data.meshes.new(eo.name); bm.to_mesh(me); bm.free()
+        for pg in me.polygons:
+            pg.use_smooth = True
+        me.materials.append(mat_for("nix_eye")); eo.data = me; bpy.data.meshes.remove(old)
+        bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1)
+        xform(bm, Matrix.Translation(eye_c[k] + Vector((0, 0, 0.012 + 0.02))) @ Matrix.Diagonal((0.04, 0.05, 0.04, 1)))
+        cm = bpy.data.meshes.new(f"{tag}_lidcut_{k}"); bm.to_mesh(cm); bm.free()
+        cut = bpy.data.objects.new(f"{tag}_lidcut_{k}", cm); coll.objects.link(cut)
+        cut.display_type = 'WIRE'; cut.hide_render = True
+        bone_parent(cut, rig, f"lid_{k}")
+        bmod = eo.modifiers.new("lid", 'BOOLEAN'); bmod.operation = 'DIFFERENCE'; bmod.object = cut; bmod.solver = 'EXACT'
+        bone_parent(eo, rig, "body")
     def var(fc, nm, prop):
         v = fc.driver.variables.new(); v.name = nm; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["{prop}"]'
     add_prop(rig, "attention", 0, -230, 70, "Degrees: moves the bead around its incomplete orbit toward whatever interests Nix")
@@ -1433,10 +1454,12 @@ def rig_nix(root, tag="NIX"):
     add_prop(rig, "lid_close", 0, 0, 1, "Lids come down over both eyes")
     add_prop(rig, "lid_mischief", 0, 0, 1, "Lids slant inward: scheming")
     add_prop(rig, "lid_innocent", 0, 0, 1, "Lids slant outward: innocent")
-    for k in ("L", "R"):
-        kbs = O[f"{tag}_eye_{k}"].data.shape_keys.key_blocks
-        for key, pr in (("lid_close", "lid_close"), ("lid_slant_in", "lid_mischief"), ("lid_slant_out", "lid_innocent")):
-            fc = kbs[key].driver_add("value"); fc.driver.type = 'SCRIPTED'; var(fc, "v", pr); fc.driver.expression = "v"
+    add_prop(rig, "lid_rest", 0.25, 0, 0.6, "Resting lid cover")
+    for k, side in (("L", -1), ("R", 1)):
+        fc = drive(rig.pose.bones[f"lid_{k}"], "location", 1, "-0.0205*min(1, max(c, r + 0.2*max(m, i)))", rig, [])
+        var(fc, "c", "lid_close"); var(fc, "r", "lid_rest"); var(fc, "m", "lid_mischief"); var(fc, "i", "lid_innocent")
+        fc = drive(rig.pose.bones[f"lid_{k}"], "rotation_euler", 1, f"{side}*radians(30*i - 30*m)", rig, [])
+        var(fc, "m", "lid_mischief"); var(fc, "i", "lid_innocent")
     rig.parent = root
     return rig
 
@@ -1716,7 +1739,7 @@ path = [(F0, NIX_START), (38, NIX_START), (43, NIX_MID), (48, NIX_TOUCH + Vector
 for f, p_ in path:
     nix.location = p_; nix.keyframe_insert("location", frame=f)
 for f, r in ((F0, (0, 0.6, -0.6)), (38, (0, 0.6, -0.6)), (44, (0, 0.9, -0.2)), (49, (0, 0.15, 0.25)), (56, (0, 0.15, 0.25)),
-             (61, (0, -0.2, 0.3)), (96, (0, -0.2, 0.3)), (110, (0, -0.1, 1.0)), (122, (0, 0.06, 0.95)), (132, (0, -0.06, 1.0)), (F1, (0, 0.0, 0.98))):
+             (61, (0, -0.2, 0.3)), (96, (0, -0.2, 0.3)), (110, (0, -0.1, 0.5)), (122, (0, 0.07, 0.45)), (132, (0, -0.06, 0.5)), (F1, (0, 0.0, 0.48))):
     nix.rotation_euler = r; nix.keyframe_insert("rotation_euler", frame=f)
 for f, (fa, fb_, sw) in ((38, (0, 0, 0)), (42, (0.3, 0.3, 1.0)), (48, (0.6, 0.6, 0.5)), (51, (0.2, 0.2, 0)), (54, (1.0, 0.1, -0.3)),
                          (57, (1.0, 0.1, -0.3)), (60, (-1.0, -1.0, 0.2)), (70, (-0.3, -0.3, 0)), (100, (-0.3, -0.3, 0)),
@@ -1806,10 +1829,10 @@ morrow_face_62 = where("MOR_face", 62)
 nix_118 = where("NIX_body", 118)
 SHOTS = [  # (first frame, camera)
     (1, make_cam("CAM_1_wide_notice", WIDE_T, WIDE_V, 2.02, push=0.08, f_in=1, f_out=38)),
-    (39, make_cam("CAM_2_insert_touch", Vector((-0.2, -0.22, 0.42)), (0.15, -1.0, 0.12), 0.86, lens=50, push=0.03, f_in=39, f_out=56)),
+    (39, make_cam("CAM_2_insert_touch", Vector((-0.31, -0.26, 0.45)), (0.3, -1.0, 0.1), 0.62, lens=50, push=0.03, f_in=39, f_out=56)),
     (57, make_cam("CAM_3_closeup_startle", morrow_face_62 + Vector((0.0, 0, 0.04)), (-0.25, -1.0, 0.06), 0.42, lens=60, push=0.0, f_in=57, f_out=70)),
     (71, make_cam("CAM_4_medium_shelter", Vector((-0.02, -0.05, 0.86)), (0.1, -1.0, 0.1), 1.55, lens=45, push=0.06, f_in=71, f_out=110)),
-    (111, make_cam("CAM_5_closeup_innocent", nix_118 + Vector((0.01, 0, 0.0)), (-0.12, -1.0, 0.06), 0.34, lens=60, push=0.01, f_in=111, f_out=128)),
+    (111, make_cam("CAM_5_closeup_innocent", nix_118 + Vector((-0.005, 0, 0.0)), (-0.4, -1.0, 0.06), 0.3, lens=60, push=0.01, f_in=111, f_out=128)),
     (129, make_cam("CAM_6_wide_final", WIDE_T + Vector((0, 0, -0.02)), WIDE_V, 1.95, push=0.03, f_in=129, f_out=144)),
 ]
 for f, c_ in SHOTS:                     # timeline markers bound to cameras, so the cuts also work in Blender
@@ -1840,6 +1863,8 @@ scene.frame_set(F0)
 MODE6 = os.environ.get("STAGE6_MODE", "full")
 if OUT:
     os.makedirs(os.path.join(OUT, "frames"), exist_ok=True)
+    if os.environ.get("STAGE6_SKIP_PUPIL") is None:
+        pass
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "stage6_personality_test.blend"))
     r = scene.render
     r.engine = 'CYCLES'; scene.cycles.device = 'CPU'; scene.cycles.samples = int(os.environ.get("STAGE6_SAMPLES", "48")); scene.cycles.use_denoising = True
@@ -1849,7 +1874,11 @@ if OUT:
     r.resolution_x, r.resolution_y, r.resolution_percentage = 1080, 1920, int(os.environ.get("STAGE6_PCT", "100"))
     r.image_settings.file_format = 'PNG'
     scene.view_settings.view_transform = 'AgX'; scene.view_settings.exposure = 0.0
-    frames_to_render = [int(x) for x in os.environ.get("STAGE6_FRAMES", "1,49,62,84,118,144").split(",")] if MODE6 == "stills" else list(range(F0, F1 + 1))
+    if MODE6 == "stills":
+        frames_to_render = [int(x) for x in os.environ.get("STAGE6_FRAMES", "1,49,62,84,118,144").split(",")]
+    else:
+        a_, b_ = [int(x) for x in os.environ.get("STAGE6_RANGE", f"{F0}-{F1}").split("-")]
+        frames_to_render = list(range(a_, b_ + 1))
     import time
     for f in frames_to_render:
         t0 = time.time()

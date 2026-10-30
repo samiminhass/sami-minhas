@@ -1408,19 +1408,40 @@ def rig_nix(root, tag="NIX"):
     bone_parent(O[f"{tag}_bead"], rig, "attention")
     for k in ("A", "B"):   # stubby paddles: rigid, swinging from the base, so they can never tear
         bone_parent(O[f"{tag}_fin_{k}"], rig, f"fin_{k}")
-    # lid shape keys on the eye shapes: flatten the top of each eye toward a slanted cut line
+    # live lid cuts: each eye is a clean ellipsoid cut by an invisible box on a lid bone
+    body = O[f"{tag}_body"]; dep = 0.03
+    fc0 = Vector((-0.045, -dep / 2 - 0.0012, -0.004))
+    eye_c = {}
     for k, side in (("L", -1), ("R", 1)):
-        eo = O[f"{tag}_eye_{k}"]; me = eo.data
-        cz = sum((v.co.z for v in me.vertices)) / len(me.vertices); cx = sum((v.co.x for v in me.vertices)) / len(me.vertices)
-        top = max(v.co.z for v in me.vertices); bot = min(v.co.z for v in me.vertices); h = top - bot
-        eo.shape_key_add(name="Basis")
-        for key, cover, slant in (("lid_close", 0.85, 0), ("lid_slant_in", 0.45, -28), ("lid_slant_out", 0.45, 28)):
-            kb = eo.shape_key_add(name=key)
-            t = math.tan(math.radians(slant * side))
-            for i, v in enumerate(me.vertices):
-                line = top - cover * h + (v.co.x - cx) * t
-                if v.co.z > line:
-                    kb.data[i].co = Vector((v.co.x, v.co.y, line))
+        ec0 = fc0 + Vector((side * 0.0128, 0, side * -0.003))
+        hit_e, _ = raycast(body, (ec0.x, -1, ec0.z), (0, 1, 0))
+        eye_c[k] = hit_e + Vector((0, 0.0012, 0)) if hit_e is not None else ec0
+    with bpy.context.temp_override(scene=scene, view_layer=VL, active_object=rig, object=rig, selected_objects=[rig]):
+        VL.objects.active = rig
+        bpy.ops.object.mode_set(mode='EDIT')
+        for k in ("L", "R"):
+            eb = rig.data.edit_bones.new(f"lid_{k}"); eb.head = eye_c[k]; eb.tail = eye_c[k] + Vector((0, 0, 0.012))
+            eb.align_roll(Vector((0, -1, 0))); eb.parent = rig.data.edit_bones["body"]; eb.use_deform = False
+        bpy.ops.object.mode_set(mode='OBJECT')
+    for k in ("L", "R"):
+        rig.pose.bones[f"lid_{k}"].rotation_mode = 'XYZ'
+    for k, side in (("L", -1), ("R", 1)):
+        eo = O[f"{tag}_eye_{k}"]
+        rot = Euler((0, math.radians(side * 10), 0)).to_matrix().to_4x4()
+        bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=40, v_segments=28, radius=1)
+        xform(bm, Matrix.Translation(eye_c[k]) @ rot @ Matrix.Diagonal((0.0075, 0.0034, 0.012, 1)))
+        old = eo.data; me = bpy.data.meshes.new(eo.name); bm.to_mesh(me); bm.free()
+        for pg in me.polygons:
+            pg.use_smooth = True
+        me.materials.append(mat_for("nix_eye")); eo.data = me; bpy.data.meshes.remove(old)
+        bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1)
+        xform(bm, Matrix.Translation(eye_c[k] + Vector((0, 0, 0.012 + 0.02))) @ Matrix.Diagonal((0.04, 0.05, 0.04, 1)))
+        cm = bpy.data.meshes.new(f"{tag}_lidcut_{k}"); bm.to_mesh(cm); bm.free()
+        cut = bpy.data.objects.new(f"{tag}_lidcut_{k}", cm); coll.objects.link(cut)
+        cut.display_type = 'WIRE'; cut.hide_render = True
+        bone_parent(cut, rig, f"lid_{k}")
+        bmod = eo.modifiers.new("lid", 'BOOLEAN'); bmod.operation = 'DIFFERENCE'; bmod.object = cut; bmod.solver = 'EXACT'
+        bone_parent(eo, rig, "body")
     def var(fc, nm, prop):
         v = fc.driver.variables.new(); v.name = nm; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["{prop}"]'
     add_prop(rig, "attention", 0, -230, 70, "Degrees: moves the bead around its incomplete orbit toward whatever interests Nix")
@@ -1433,10 +1454,12 @@ def rig_nix(root, tag="NIX"):
     add_prop(rig, "lid_close", 0, 0, 1, "Lids come down over both eyes")
     add_prop(rig, "lid_mischief", 0, 0, 1, "Lids slant inward: scheming")
     add_prop(rig, "lid_innocent", 0, 0, 1, "Lids slant outward: innocent")
-    for k in ("L", "R"):
-        kbs = O[f"{tag}_eye_{k}"].data.shape_keys.key_blocks
-        for key, pr in (("lid_close", "lid_close"), ("lid_slant_in", "lid_mischief"), ("lid_slant_out", "lid_innocent")):
-            fc = kbs[key].driver_add("value"); fc.driver.type = 'SCRIPTED'; var(fc, "v", pr); fc.driver.expression = "v"
+    add_prop(rig, "lid_rest", 0.25, 0, 0.6, "Resting lid cover")
+    for k, side in (("L", -1), ("R", 1)):
+        fc = drive(rig.pose.bones[f"lid_{k}"], "location", 1, "-0.0205*min(1, max(c, r + 0.2*max(m, i)))", rig, [])
+        var(fc, "c", "lid_close"); var(fc, "r", "lid_rest"); var(fc, "m", "lid_mischief"); var(fc, "i", "lid_innocent")
+        fc = drive(rig.pose.bones[f"lid_{k}"], "rotation_euler", 1, f"{side}*radians(30*i - 30*m)", rig, [])
+        var(fc, "m", "lid_mischief"); var(fc, "i", "lid_innocent")
     rig.parent = root
     return rig
 
@@ -1623,7 +1646,12 @@ for key, (root, rig) in RIGS.items():
         reset(rig); before = eval_coords(bpy.data.objects[watch])
         rig[prop] = float(val); upd()
         after = eval_coords(bpy.data.objects[watch])
-        mv = max((a_ - b_).length for a_, b_ in zip(after, before)) * 1000
+        if len(after) == len(before):
+            mv = max((a_ - b_).length for a_, b_ in zip(after, before)) * 1000
+        else:   # topology changed (a live cut): compare the extents instead
+            lo1 = [min(p_[i] for p_ in before) for i in range(3)]; hi1 = [max(p_[i] for p_ in before) for i in range(3)]
+            lo2 = [min(p_[i] for p_ in after) for i in range(3)]; hi2 = [max(p_[i] for p_ in after) for i in range(3)]
+            mv = max(abs(x - y) for x, y in zip(lo1 + hi1, lo2 + hi2)) * 1000
         ok = mv > 0.2
         passed += ok; failed += (not ok)
         report(f"| {prop} | {val} | {watch} | {mv:.2f} | {'PASS' if ok else 'FAIL'} |")
