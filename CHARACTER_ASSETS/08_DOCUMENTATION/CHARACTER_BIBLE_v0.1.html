@@ -1,0 +1,648 @@
+<title>Character Bible</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap">
+
+<style>
+  /* Handcrafted village universe — warm parchment tones, tactile feel */
+  :root {
+    --bg: #FAF6F0;
+    --bg-warm: #F3ECE0;
+    --fg: #2C2520;
+    --fg-muted: #7A6E62;
+    --accent: #C4613A;
+    --accent-soft: #D4896B;
+    --green: #5B7A52;
+    --blue: #4A6B7A;
+    --lavender: #8B7BA0;
+    --gold: #B89A5A;
+    --border: #D9CEBD;
+    --card: #FFFFFF;
+    --card-shadow: rgba(44, 37, 32, 0.08);
+    --display: 'Playfair Display', Georgia, serif;
+    --body: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1A1714;
+      --bg-warm: #231F1A;
+      --fg: #E8E0D4;
+      --fg-muted: #9A8E82;
+      --accent: #D4896B;
+      --accent-soft: #C4613A;
+      --green: #7DA072;
+      --blue: #6A9BB0;
+      --lavender: #A898BC;
+      --gold: #D0B46A;
+      --border: #3A332C;
+      --card: #2A2520;
+      --card-shadow: rgba(0, 0, 0, 0.3);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1A1714;
+    --bg-warm: #231F1A;
+    --fg: #E8E0D4;
+    --fg-muted: #9A8E82;
+    --accent: #D4896B;
+    --accent-soft: #C4613A;
+    --green: #7DA072;
+    --blue: #6A9BB0;
+    --lavender: #A898BC;
+    --gold: #D0B46A;
+    --border: #3A332C;
+    --card: #2A2520;
+    --card-shadow: rgba(0, 0, 0, 0.3);
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.65;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+
+  .container { max-width: 860px; margin: 0 auto; padding-block: 2rem 4rem; }
+
+  h1, h2, h3, h4 { font-family: var(--display); font-weight: 700; line-height: 1.2; text-wrap: balance; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 0.3rem; color: var(--fg); }
+  h2 { font-size: 1.45rem; margin: 3rem 0 1rem; color: var(--fg); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+  h3 { font-size: 1.15rem; margin: 1.8rem 0 0.6rem; color: var(--accent); }
+  h4 { font-size: 1rem; margin: 1.2rem 0 0.4rem; font-weight: 600; }
+
+  .subtitle { font-family: var(--display); font-style: italic; color: var(--fg-muted); font-size: 1.1rem; margin: 0 0 2rem; }
+
+  .status-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 3px;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    vertical-align: middle; margin-left: 0.5rem;
+  }
+  .approved { background: var(--green); color: #fff; }
+  .proposed { background: var(--gold); color: #1a1714; }
+  .pending { background: var(--fg-muted); color: var(--bg); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 2px 8px var(--card-shadow);
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 600px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  .trait-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1.5rem;
+  }
+  .trait-grid dt { font-weight: 600; color: var(--fg-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .trait-grid dd { margin: 0; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); }
+  @media (max-width: 500px) {
+    .trait-grid { grid-template-columns: 1fr; }
+  }
+
+  .name-option {
+    background: var(--bg-warm);
+    border-left: 3px solid var(--accent);
+    padding: 0.8rem 1rem;
+    margin: 0.6rem 0;
+  }
+  .name-option strong { color: var(--accent); font-size: 1.05rem; }
+  .name-option .pick { font-size: 0.7rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .color-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.6rem 0; }
+  .swatch {
+    width: 48px; height: 48px; border: 2px solid var(--border);
+    display: flex; align-items: flex-end; justify-content: center;
+    font-size: 0.55rem; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    padding-bottom: 2px; font-weight: 600;
+  }
+
+  .rel-line {
+    display: flex; align-items: center; gap: 0.8rem;
+    padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+  }
+  .rel-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  .world-section { background: var(--bg-warm); padding: 1.5rem; margin: 1rem 0; border: 1px solid var(--border); }
+
+  .toc { background: var(--bg-warm); padding: 1.2rem 1.5rem; margin: 1.5rem 0; border: 1px solid var(--border); }
+  .toc a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ol { margin: 0.5rem 0 0; padding-left: 1.5rem; }
+  .toc li { margin: 0.25rem 0; }
+  .toc li::marker { color: var(--fg-muted); }
+
+  .pipeline-step {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 0.8rem 0; border-bottom: 1px solid var(--border);
+  }
+  .step-num {
+    width: 28px; height: 28px; flex-shrink: 0;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem;
+  }
+
+  .material-row { display: flex; gap: 0.3rem; flex-wrap: wrap; margin: 0.4rem 0; }
+  .mat-chip {
+    padding: 2px 8px; font-size: 0.75rem; border: 1px solid var(--border);
+    background: var(--bg-warm); font-weight: 600;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 0.8rem 0; }
+  th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); border-bottom: 2px solid var(--border); padding: 0.4rem 0.6rem; }
+  td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); }
+
+  .sep { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+  .footer-note { font-size: 0.8rem; color: var(--fg-muted); font-style: italic; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+</style>
+
+<div class="container">
+
+<h1>Character Bible</h1>
+<p class="subtitle">Pre-Production Character Development Package &mdash; v0.1 Draft</p>
+
+<nav class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#world">World Concept</a></li>
+    <li><a href="#art">Art Direction</a></li>
+    <li><a href="#char1">Character 01 &mdash; The Girl</a></li>
+    <li><a href="#char2">Character 02 &mdash; The Baker</a></li>
+    <li><a href="#char3">Character 03 &mdash; The Inventor Boy</a> (proposed)</li>
+    <li><a href="#char4">Character 04 &mdash; The Flower Grandmother</a> (proposed)</li>
+    <li><a href="#relationships">Cast Relationships</a></li>
+    <li><a href="#pipeline">Production Pipeline</a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════════════════ WORLD ═══════════════════════ -->
+<h2 id="world">1. World Concept</h2>
+<div class="world-section">
+  <h3 style="margin-top:0;">Millbrook &mdash; A Village Between Seasons</h3>
+  <p>A small, self-contained village nestled in a valley between low, rounded hills and dense forests. The architecture is hand-built: thick stone walls, timber frames, clay-tile roofs weathered to irregular earthy tones. Streets are narrow, paved in uneven cobblestone. Every surface carries the patina of generations&mdash;worn doorsteps, faded painted signs, iron hinges green with age.</p>
+
+  <h4>Key Locations</h4>
+  <dl class="trait-grid">
+    <dt>The Bakery</dt><dd>Heart of the village. Warm light spills from small windows. Flour dust hangs in the air. The oven is enormous and ancient, built into the stone wall itself.</dd>
+    <dt>The Square</dt><dd>A small irregular plaza with a stone fountain (dry in summer, overflowing in spring). Market stalls appear on certain days. Pigeons and stray cats.</dd>
+    <dt>The Old Bridge</dt><dd>A single stone arch over a narrow stream. Moss-covered, slightly crooked. The place where children gather and secrets are told.</dd>
+    <dt>The Meadow</dt><dd>Beyond the last houses. Wildflowers in every season. Rolling hills, scattered trees, a view of distant mountains. Where the girl goes to think.</dd>
+    <dt>The Workshop Shed</dt><dd>A leaning timber outbuilding behind someone's garden. Full of junk, gears, half-built contraptions, and the smell of machine oil and sawdust.</dd>
+    <dt>The Grandmother's Cottage</dt><dd>Slightly apart from the village, surrounded by an overgrown garden that seems to bloom regardless of season. Herbs hang from the ceiling inside.</dd>
+    <dt>The Forest Edge</dt><dd>Where the known world ends. Dense, old-growth trees. Strange sounds. Paths that seem to shift. Nobody goes far in.</dd>
+    <dt>The Cellar Market</dt><dd>Beneath the square. Vaulted stone ceilings, lantern-lit. Where unusual things are traded, and rumors begin.</dd>
+  </dl>
+
+  <h4>World Rules</h4>
+  <ul>
+    <li>The world is grounded and believable. Physics work. People get tired, hungry, wet.</li>
+    <li>Subtle strangeness exists at the edges: a door that wasn't there yesterday, a flower that blooms in frost, a sound from the forest with no source.</li>
+    <li>Magic is never explained or systematic. It is atmospheric, ambiguous, and rare.</li>
+    <li>Seasons change and matter. Winter means real cold. Summer means real heat. The village transforms with each season.</li>
+    <li>Animals behave like animals. They are not comic sidekicks. (A cat is a cat.)</li>
+    <li>The village has a past. There are things the adults don't talk about. Old photographs. A locked room. An abandoned building.</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════ ART DIRECTION ═══════════════════════ -->
+<h2 id="art">2. Art Direction</h2>
+
+<h3>Visual Identity</h3>
+<p>Handcrafted stop-motion-inspired cinematic 3D. Every surface should look like it was made by hand&mdash;stitched, carved, sculpted, knitted, baked. The world should feel like a physical miniature set brought to life, with the precision and warmth of Laika-quality production design, but with our own proportional language, color identity, and character philosophy.</p>
+
+<h4>Core Palette</h4>
+<div class="color-row">
+  <div class="swatch" style="background:#C4613A;">Terracotta</div>
+  <div class="swatch" style="background:#D4896B;">Salmon</div>
+  <div class="swatch" style="background:#E8C97A;">Wheat</div>
+  <div class="swatch" style="background:#5B7A52;">Moss</div>
+  <div class="swatch" style="background:#4A6B7A;">Slate Blue</div>
+  <div class="swatch" style="background:#8B7BA0;">Heather</div>
+  <div class="swatch" style="background:#F3ECE0;">Parchment</div>
+  <div class="swatch" style="background:#2C2520; border-color:#555;">Umber</div>
+</div>
+
+<h4>Material Language</h4>
+<table>
+  <thead><tr><th>Surface Type</th><th>Shader Approach</th><th>Key Properties</th></tr></thead>
+  <tbody>
+    <tr><td>Skin</td><td>Principled BSDF + SSS</td><td>Warm subsurface, subtle freckle/blush maps, low roughness variation</td></tr>
+    <tr><td>Fabric (worn)</td><td>Principled BSDF + bump</td><td>High roughness, micro-fiber bump, desaturated, patched areas with different roughness</td></tr>
+    <tr><td>Fabric (knit)</td><td>Principled BSDF + displacement</td><td>Visible stitch pattern, yarn-level detail in displacement, soft diffuse</td></tr>
+    <tr><td>Leather</td><td>Principled BSDF</td><td>Medium roughness, subtle cracking normal, warm brown-red tones</td></tr>
+    <tr><td>Wood</td><td>Principled BSDF + grain bump</td><td>Visible grain, warm golden-brown, weathered edges</td></tr>
+    <tr><td>Stone</td><td>Principled BSDF + multi-bump</td><td>Rough, moss in crevices, cool grey base with warm highlights</td></tr>
+    <tr><td>Hair</td><td>Principled Hair BSDF</td><td>Per-strand variation, flyaways, matte-to-subtle-sheen gradient</td></tr>
+    <tr><td>Bread/food</td><td>Principled BSDF + SSS</td><td>Crust roughness vs crumb SSS, golden warm tones, flour dust particles</td></tr>
+  </tbody>
+</table>
+
+<h4>Lighting Philosophy</h4>
+<ul>
+  <li><strong>Exterior:</strong> Warm golden-hour key, cool sky fill, subtle rim separation. Time-of-day shifts between scenes.</li>
+  <li><strong>Interior (bakery):</strong> Warm practical lights (oven glow, window light), deep shadows, orange fill from fire.</li>
+  <li><strong>Interior (cottage):</strong> Dappled light through small windows, filtered through plants and curtains. Soft, green-tinged.</li>
+  <li><strong>Night:</strong> Deep blue environment, practical warm lamplight, strong contrast.</li>
+</ul>
+
+<h4>Proportional Rules (All Characters)</h4>
+<ul>
+  <li>Heads are approximately 1/3 to 1/4 of total body height (large, expressive).</li>
+  <li>Hands are slightly oversized for emotional gesturing.</li>
+  <li>Feet are grounded and substantial&mdash;big enough to convey weight.</li>
+  <li>Eyes are the dominant facial feature. Eye size scales with emotional openness of the character.</li>
+  <li>Proportions express personality: round = warm/safe, angular = sharp/guarded, tall/thin = nervous/energetic.</li>
+</ul>
+
+<hr class="sep">
+
+<!-- ═══════════════════════ CHARACTER 01 ═══════════════════════ -->
+<h2 id="char1">3. Character 01 &mdash; The Girl <span class="status-badge approved">Approved Reference</span></h2>
+
+<h3>A. Identity</h3>
+<div class="card">
+  <dl class="trait-grid">
+    <dt>Category</dt><dd>Protagonist / Lead</dd>
+    <dt>Age Impression</dt><dd>8&ndash;10 years old</dd>
+    <dt>Role</dt><dd>Central character. The audience's entry point into Millbrook.</dd>
+    <dt>Emotional Core</dt><dd>Fierce tenderness. She protects what she loves with everything she has, even when she's scared.</dd>
+    <dt>Personality</dt><dd>Brave, curious, stubborn, imaginative, private, loyal</dd>
+    <dt>Greatest Strength</dt><dd>She never abandons someone or something she cares about.</dd>
+    <dt>Main Weakness</dt><dd>She doesn't easily trust new people. She holds on too tight&mdash;to her bunny, to her routines, to the way things were.</dd>
+    <dt>Core Contradiction</dt><dd>She craves adventure but is afraid of losing what she already has.</dd>
+    <dt>What Makes Her Interesting</dt><dd>She looks like she's been through something. There's a visible history in her worn clothes, her fierce grip on the bunny, her wariness. But she hasn't become hard&mdash;she's still open enough to be surprised.</dd>
+  </dl>
+</div>
+
+<h3>B. Naming Proposals</h3>
+<div class="name-option">
+  <strong>Mila</strong> <span class="pick">Recommended</span><br>
+  Slavic origin, means "gracious" or "dear." Short, warm, easy to say in any language. Feels like a real village child's name, not a fantasy invention. The soft "m" opening and the open "a" ending carry warmth, but the name is also crisp enough for a character who can be sharp. Works naturally in dialogue: "Mila, come inside." "Mila found it." "That's Mila's."
+</div>
+<div class="name-option">
+  <strong>Luma</strong><br>
+  Latin root for "light." Slightly more unusual, slightly more lyrical. Evokes the warm glow of the village. Could feel too precious if the character needs to also feel scrappy and rough.
+</div>
+<div class="name-option">
+  <strong>Wren</strong><br>
+  English, after the small determined bird. Strong consonant, one syllable, feels gutsy and compact. Matches her scrappy energy. Risk: might feel more Anglo/modern than the European village setting.
+</div>
+<div class="name-option">
+  <strong>Runa</strong><br>
+  Norse origin, meaning "secret" or "hidden lore." Connects to the mysterious edges of the world. A name that carries story within it&mdash;why was she named this?
+</div>
+
+<h3>C. Physical Design (From Approved Reference)</h3>
+<div class="card">
+  <dl class="trait-grid">
+    <dt>Height</dt><dd>~4 heads tall. Compact, sturdy build.</dd>
+    <dt>Head</dt><dd>Large and round. Wide forehead. Strong chin for a child. Head-to-body ratio emphasizes vulnerability and expressiveness.</dd>
+    <dt>Hair</dt><dd>Black, messy, wild flyaways. One very long braid wrapped in crisscrossed cord/twine, reaching past her waist. The braid is heavy&mdash;a physical weight she carries.</dd>
+    <dt>Eyes</dt><dd>Large, dark brown, wide-set. Dominant facial feature. Slightly upturned outer corners. High, expressive eyebrows.</dd>
+    <dt>Nose</dt><dd>Small, rounded, slightly upturned. Freckles across the bridge and cheeks.</dd>
+    <dt>Mouth</dt><dd>Small, slightly asymmetric natural resting expression&mdash;not quite a smile, not neutral. Capable of very wide expressions.</dd>
+    <dt>Skin</dt><dd>Warm peach-tan with visible freckles. Subtle subsurface warmth. Slightly ruddy cheeks and nose tip.</dd>
+    <dt>Torso</dt><dd>Coral/salmon loose-fitting tunic over cream long sleeves. Tunic is faded, slightly stained. Hem is uneven.</dd>
+    <dt>Lower</dt><dd>Patched denim capri-length jeans. Visible hand-stitched repair patches in lighter denim.</dd>
+    <dt>Feet</dt><dd>Red canvas sneakers, well-worn, slightly scuffed. Thick rubber soles. The one modern-feeling element, grounding her in relatability.</dd>
+    <dt>Signature Object</dt><dd>Handmade stuffed bunny rabbit. Cream/tan fabric, simple stitched face, floppy ears, well-loved and slightly misshapen from use. She carries it cradled in both arms or tucked under one arm.</dd>
+  </dl>
+
+  <h4>Character Colors</h4>
+  <div class="color-row">
+    <div class="swatch" style="background:#C4613A;">Coral top</div>
+    <div class="swatch" style="background:#F2E6CE;">Cream sleeve</div>
+    <div class="swatch" style="background:#5B7A9A;">Denim</div>
+    <div class="swatch" style="background:#C13B2A;">Red shoe</div>
+    <div class="swatch" style="background:#1C1A18; border-color:#555;">Black hair</div>
+    <div class="swatch" style="background:#D4A574;">Bunny</div>
+  </div>
+</div>
+
+<h3>D. Animation Identity</h3>
+<div class="card">
+  <dl class="trait-grid">
+    <dt>Posture</dt><dd>Slightly forward lean when curious. Pulls bunny closer and straightens when defensive.</dd>
+    <dt>Walk</dt><dd>Purposeful, slightly heavy steps for her size. The braid swings with a slight delay (secondary action).</dd>
+    <dt>Run</dt><dd>Full-body commitment, arms pumping, braid whipping. Bunny clutched tight under one arm.</dd>
+    <dt>Idle</dt><dd>Shifts weight. Adjusts grip on bunny. Looks around. Pushes hair out of face.</dd>
+    <dt>Signature Gesture</dt><dd>When thinking hard: holds bunny up to face level and looks at it, as if consulting it.</dd>
+    <dt>Emotional Tell</dt><dd>The tighter she holds the bunny, the more scared or uncertain she is.</dd>
+  </dl>
+</div>
+
+<h3>E. Required Expressions</h3>
+<table>
+  <thead><tr><th>Expression</th><th>Key Features</th></tr></thead>
+  <tbody>
+    <tr><td>Neutral</td><td>Slightly guarded. Mouth nearly closed. Eyes steady. Brow slightly lowered. Watchful.</td></tr>
+    <tr><td>Happy</td><td>Genuine, not performed. Eyes crinkle. Freckles bunch on cheeks. Slight head tilt.</td></tr>
+    <tr><td>Sad</td><td>Lower lip pushed forward. Eyes wide and wet-looking. Bunny pulled very close.</td></tr>
+    <tr><td>Angry</td><td>Brow furrowed hard. Nostrils slightly flared. Jaw set. Small but fierce.</td></tr>
+    <tr><td>Surprised</td><td>Eyes very wide. Mouth open. Head pulled back slightly. Braid lifts.</td></tr>
+    <tr><td>Worried</td><td>Asymmetric brow. Lips pressed together. Slight shoulder hunch. Bunny at chest height.</td></tr>
+    <tr><td>Curious</td><td>Head tilted. Eyes narrowed slightly. One eyebrow higher. Leaning forward.</td></tr>
+    <tr><td>Confused</td><td>Head turned slightly. One eye squinted. Mouth slightly open and off-center.</td></tr>
+  </tbody>
+</table>
+
+<hr class="sep">
+
+<!-- ═══════════════════════ CHARACTER 02 ═══════════════════════ -->
+<h2 id="char2">4. Character 02 &mdash; The Baker <span class="status-badge approved">Approved Reference</span></h2>
+
+<h3>A. Identity</h3>
+<div class="card">
+  <dl class="trait-grid">
+    <dt>Category</dt><dd>Major Supporting / Potential Deuteragonist</dd>
+    <dt>Age Impression</dt><dd>50&ndash;60 years old</dd>
+    <dt>Role</dt><dd>The village's anchor. His bakery is where people come, whether they need bread or not. His relationship with the girl is the emotional spine of the series.</dd>
+    <dt>Emotional Core</dt><dd>A man who lost something important and replaced the absence with routine, discipline, and bread. His gruffness is armor. The girl is slowly finding a crack in it.</dd>
+    <dt>Personality</dt><dd>Gruff, proud, territorial, ritualistic, surprisingly perceptive, quietly generous</dd>
+    <dt>Greatest Strength</dt><dd>He makes everyone feel fed&mdash;literally and emotionally&mdash;without admitting he cares.</dd>
+    <dt>Main Weakness</dt><dd>He can't say what he feels. He substitutes action for words, bread for affection, grumbling for concern.</dd>
+    <dt>Core Contradiction</dt><dd>He pushes people away with his manner and draws them in with his actions.</dd>
+    <dt>What Makes Him Interesting</dt><dd>His design is comic (the mustache, the belly, the arms-crossed stance) but his emotional truth is deeply sympathetic. He is simultaneously the funniest and the saddest character.</dd>
+  </dl>
+</div>
+
+<h3>B. Naming Proposals</h3>
+<div class="name-option">
+  <strong>Borek</strong> <span class="pick">Recommended</span><br>
+  Central/Eastern European feel. The hard "B" and the rolling "r" match his physical presence. Also subtly evokes "borek," a baked pastry&mdash;a quiet joke embedded in the name. Sounds like someone who would fold his arms and say nothing. Easy for children to say and remember.
+</div>
+<div class="name-option">
+  <strong>Gustl</strong><br>
+  Bavarian diminutive of Gustav. Affectionate despite the character's gruffness&mdash;suggests someone the village has known since he was a boy. Warm, familiar, slightly comic.
+</div>
+<div class="name-option">
+  <strong>Hamish</strong><br>
+  Scottish Gaelic form of James. Sounds sturdy, heavy, dependable. Matches the barrel-shaped physique. Risk: might locate the world too specifically in Scotland.
+</div>
+<div class="name-option">
+  <strong>Tadek</strong><br>
+  Polish diminutive of Tadeusz. Warm, compact, grandfatherly. Has a gentle ending that contrasts with his tough exterior.
+</div>
+
+<h3>C. Physical Design (From Approved Reference)</h3>
+<div class="card">
+  <dl class="trait-grid">
+    <dt>Height</dt><dd>~3.5 heads tall. Extremely stocky. Wide as he is tall.</dd>
+    <dt>Build</dt><dd>Barrel-shaped torso, massive forearms, short thick legs. His mass is in his upper body. Center of gravity is high and forward.</dd>
+    <dt>Head</dt><dd>Large, round, sits directly on shoulders with almost no visible neck. Wide jaw.</dd>
+    <dt>Hair</dt><dd>Dark brown, thinning, messy on top. Almost bald. Wild bushy eyebrows that extend past the eye socket.</dd>
+    <dt>Eyes</dt><dd>Small, deep-set, partially hidden by the enormous eyebrows. Dark. Suspicious and observant.</dd>
+    <dt>Nose</dt><dd>Bulbous, prominent, pinkish-red. The warmest-colored point on his face. Suggests both temperament and temperature (the oven).</dd>
+    <dt>Mouth</dt><dd>Hidden behind massive curled handlebar mustache. Mouth movements must be readable through the mustache shape and cheek movement.</dd>
+    <dt>Facial Hair</dt><dd>Signature feature: thick, dark brown handlebar mustache, waxed into dramatic upward curls. The mustache is his pride. It moves independently as a secondary animation feature.</dd>
+    <dt>Torso</dt><dd>Cream/off-white baker's jacket. Flour-dusted. Wooden buttons. Slightly too tight across the belly. Linen apron tied over it, stained with flour and dough.</dd>
+    <dt>Lower</dt><dd>Burgundy/maroon loose trousers gathered at the knee. Thick, utilitarian.</dd>
+    <dt>Feet</dt><dd>Wooden clogs. Simple, practical, loud on cobblestone. Flour-dusted.</dd>
+    <dt>Arms</dt><dd>Forearms are exposed and hairy. Thick wrists. Hands are enormous&mdash;kneading hands. Often crossed over his chest.</dd>
+    <dt>Signature Object</dt><dd>A round bread loaf, often carried under one arm or held out to someone (the only way he says "I care").</dd>
+  </dl>
+
+  <h4>Character Colors</h4>
+  <div class="color-row">
+    <div class="swatch" style="background:#E8DCC8;">Baker jacket</div>
+    <div class="swatch" style="background:#8B7355;">Apron</div>
+    <div class="swatch" style="background:#6B2D3A;">Trousers</div>
+    <div class="swatch" style="background:#3D2B1A; border-color:#555;">Mustache</div>
+    <div class="swatch" style="background:#C46060;">Nose</div>
+    <div class="swatch" style="background:#A67C52;">Bread</div>
+  </div>
+</div>
+
+<h3>D. Animation Identity</h3>
+<div class="card">
+  <dl class="trait-grid">
+    <dt>Posture</dt><dd>Arms crossed, chest out, chin slightly raised. Default stance says "go away."</dd>
+    <dt>Walk</dt><dd>Heavy, deliberate, slightly waddling. Clogs clop on stone. The ground feels him coming.</dd>
+    <dt>Work</dt><dd>When baking, he transforms. His movements become precise, rhythmic, graceful. Kneading is a dance. This contrast reveals his inner life.</dd>
+    <dt>Idle</dt><dd>Adjusts apron. Wipes hands on cloth. Sniffs the air (checking the oven). Strokes mustache.</dd>
+    <dt>Signature Gesture</dt><dd>The bread hand-off: he shoves a loaf toward someone without looking at them, as if he's annoyed by his own generosity.</dd>
+    <dt>Emotional Tell</dt><dd>His mustache droops when he's sad and bristles upward when he's proud or pleased. It's involuntary.</dd>
+  </dl>
+</div>
+
+<h3>E. Required Expressions</h3>
+<table>
+  <thead><tr><th>Expression</th><th>Key Features</th></tr></thead>
+  <tbody>
+    <tr><td>Neutral</td><td>Arms crossed. Brow furrowed. Mustache level. Eyes half-lidded. Skeptical.</td></tr>
+    <tr><td>Happy</td><td>He won't smile outright. The mustache lifts at the corners. Eyes soften. Chin drops slightly.</td></tr>
+    <tr><td>Sad</td><td>Mustache droops. Eyebrows lose their furrow. He looks smaller. Shoulders drop.</td></tr>
+    <tr><td>Angry</td><td>Full bristle. Mustache points straight out. Face reddens. Nostrils flare. Hands become fists.</td></tr>
+    <tr><td>Surprised</td><td>Eyebrows shoot above the eye line (visible for once). Mustache splays. Mouth opens behind it.</td></tr>
+    <tr><td>Worried</td><td>One hand goes to the mustache, twisting it. Eyes dart. He won't admit it verbally.</td></tr>
+    <tr><td>Curious</td><td>One eyebrow up. Head tilted down, looking over an imaginary pair of glasses. Suspicious curiosity.</td></tr>
+    <tr><td>Confused</td><td>Both eyebrows up, mustache asymmetric, one end higher than the other. Slow blink.</td></tr>
+  </tbody>
+</table>
+
+<hr class="sep">
+
+<!-- ═══════════════════════ CHARACTER 03 ═══════════════════════ -->
+<h2 id="char3">5. Character 03 &mdash; The Inventor Boy <span class="status-badge proposed">Proposed</span></h2>
+
+<h3>A. Concept &amp; Cast Contribution</h3>
+<div class="card">
+  <p><strong>Why this character belongs in the cast:</strong> The girl is brave but private, the baker is warm but guarded. The cast needs a character who is openly enthusiastic, socially generous, and physically comic&mdash;someone who creates momentum. The inventor boy provides energy, humor, and a reason for stories to happen: his inventions go wrong, his curiosity drags people into situations, and his good intentions create chaos that reveals other characters' true natures.</p>
+  <p><strong>What he adds that no one else does:</strong> Physical comedy through clumsiness. A reason for mechanical/technological plot devices within the handcrafted world. A foil for the girl's caution (he acts before thinking; she thinks before acting). The friendship dynamic the audience wants to root for.</p>
+  <p><strong>Risk if removed:</strong> The cast becomes too interior and slow. Without an external energy source, stories rely entirely on the girl's internal journey and the baker's emotional walls, which limits the range of episodes and tones available.</p>
+</div>
+
+<h3>B. Identity</h3>
+<div class="card">
+  <dl class="trait-grid">
+    <dt>Category</dt><dd>Major Supporting / Best Friend</dd>
+    <dt>Age Impression</dt><dd>10&ndash;12 years old</dd>
+    <dt>Emotional Core</dt><dd>He believes everything can be fixed, built, or improved. His optimism is genuine and tested&mdash;things fail constantly, and he keeps going.</dd>
+    <dt>Personality</dt><dd>Enthusiastic, clumsy, loyal, talkative, oblivious to social cues, surprisingly sensitive</dd>
+    <dt>Greatest Strength</dt><dd>He never gives up on an idea or a friend.</dd>
+    <dt>Main Weakness</dt><dd>He doesn't listen. He's already building the solution before anyone finishes describing the problem.</dd>
+    <dt>Core Contradiction</dt><dd>He builds things to bring people together but is so absorbed in building that he forgets to be present.</dd>
+  </dl>
+</div>
+
+<h3>C. Naming Proposals</h3>
+<div class="name-option">
+  <strong>Pim</strong> <span class="pick">Recommended</span><br>
+  Dutch/Nordic feel. Very short, slightly comical, easy to shout across a village square. The percussive "P" suits his energetic personality. It sounds like a small, fast sound&mdash;a spring popping, a bolt dropping&mdash;which matches his inventor identity.
+</div>
+<div class="name-option">
+  <strong>Oskar</strong><br>
+  Germanic. Has more weight and seriousness than Pim, which could create an interesting contrast with his goofy personality. Feels like a name his parents gave him hoping he'd be dignified.
+</div>
+<div class="name-option">
+  <strong>Fenn</strong><br>
+  Short, unusual, nature-adjacent (fen = wetland). Slightly mysterious for a character who is not mysterious at all, which is charming.
+</div>
+
+<h3>D. Physical Design (Proposed &mdash; Inspired by Reference)</h3>
+<div class="card">
+  <dl class="trait-grid">
+    <dt>Height</dt><dd>~4.5 heads tall. Taller than the girl but much thinner.</dd>
+    <dt>Build</dt><dd>Lanky. Long arms and legs. Knobby joints. All elbows and knees. Looks like he grew three inches overnight and his body hasn't adjusted.</dd>
+    <dt>Head</dt><dd>Slightly elongated vertically. Large ears that stick out. Narrow chin.</dd>
+    <dt>Hair</dt><dd>Brown, wild, unkempt. Sticks up in every direction. There's always something in it (a pencil, a wire, sawdust).</dd>
+    <dt>Eyes</dt><dd>Large behind oversized round glasses. Magnified, making them look even bigger. Bright, constantly moving.</dd>
+    <dt>Glasses</dt><dd>Thick round frames, slightly too big. Dark brown or black. Held together with tape or wire at the bridge. One lens slightly different from the other (a replacement).</dd>
+    <dt>Torso</dt><dd>Mustard/ochre knit sweater (hand-knit texture visible). Denim overalls over it, loose and functional with many pockets.</dd>
+    <dt>Hands</dt><dd>Disproportionately large. Stained with ink and grease. Fidgeting constantly.</dd>
+    <dt>Feet</dt><dd>Oversized brown boots, unlaced or loosely laced. Mismatched striped socks visible above.</dd>
+    <dt>Accessories</dt><dd>A leather satchel/toolbox slung across his body, full of copper tubes, gears, small tools, rolled papers.</dd>
+  </dl>
+</div>
+
+<hr class="sep">
+
+<!-- ═══════════════════════ CHARACTER 04 ═══════════════════════ -->
+<h2 id="char4">6. Character 04 &mdash; The Flower Grandmother <span class="status-badge proposed">Proposed</span></h2>
+
+<h3>A. Concept &amp; Cast Contribution</h3>
+<div class="card">
+  <p><strong>Why this character belongs in the cast:</strong> The cast currently trends young and active. The grandmother provides counterweight: stillness, patience, observation. She is the character who sees what others miss. In story terms, she is the bridge between the mundane village and its mysterious edges&mdash;she knows things, but reveals them only through indirect hints, gifts of specific flowers, and well-timed silences.</p>
+  <p><strong>What she adds that no one else does:</strong> Access to the village's history and its deeper mysteries. A different kind of warmth than the baker's (hers is offered freely, without resistance). A tonal anchor for quieter, more contemplative episodes. The only character who might genuinely understand the subtle strangeness at the world's edges.</p>
+  <p><strong>Risk if removed:</strong> The mystery dimension of the world has no human face. The village lacks intergenerational depth. The girl has no female mentor figure, and the cast becomes an all-male supporting ensemble around a single girl protagonist.</p>
+</div>
+
+<h3>B. Identity</h3>
+<div class="card">
+  <dl class="trait-grid">
+    <dt>Category</dt><dd>Supporting / Mentor / Mystery</dd>
+    <dt>Age Impression</dt><dd>70&ndash;80 years old</dd>
+    <dt>Emotional Core</dt><dd>She has already lived the adventures the children are beginning. She carries both the joy and the loss of that experience, and she chooses to share the joy.</dd>
+    <dt>Personality</dt><dd>Gentle, amused, perceptive, private, unhurried, quietly mischievous</dd>
+    <dt>Greatest Strength</dt><dd>She listens. Really listens. And she answers with exactly what someone needs, even if it's not what they asked for.</dd>
+    <dt>Main Weakness</dt><dd>She keeps secrets. Some of them might be better shared. Her protectiveness can feel like deception.</dd>
+    <dt>Core Contradiction</dt><dd>She is the most open and welcoming character, yet she is the one hiding the most.</dd>
+  </dl>
+</div>
+
+<h3>C. Naming Proposals</h3>
+<div class="name-option">
+  <strong>Baba Vela</strong> <span class="pick">Recommended</span><br>
+  "Baba" is the universal grandmother&mdash;used across Eastern European, Central Asian, and Middle Eastern cultures. "Vela" evokes both "veil" (she hides things) and the Latin for "sails" (she navigates unseen currents). The village would call her Baba Vela as a title of warm respect. Children would just say "Baba."
+</div>
+<div class="name-option">
+  <strong>Nana Suri</strong><br>
+  "Suri" means "rose" in some traditions, connecting to her garden. "Nana" is a warm, familiar grandmother title. Slightly more international-feeling.
+</div>
+<div class="name-option">
+  <strong>Mirja</strong><br>
+  Finnish form of Miriam. Quiet, old-fashioned, and rare outside the north. A formal name the village would soften to "Miri" or just "Grandmother."
+</div>
+
+<h3>D. Physical Design (Proposed &mdash; Inspired by Reference)</h3>
+<div class="card">
+  <dl class="trait-grid">
+    <dt>Height</dt><dd>~3 heads tall. The smallest character. Slightly hunched forward.</dd>
+    <dt>Build</dt><dd>Round, soft, compact. No sharp angles anywhere. She is made of circles.</dd>
+    <dt>Head</dt><dd>Round. Prominent cheekbones under soft, lined skin. Small chin. A face shaped by decades of smiling.</dd>
+    <dt>Hair</dt><dd>Silver-white, wild curly, voluminous. Untameable. Flyaways catch the light like a halo.</dd>
+    <dt>Eyes</dt><dd>Small but very alive. Bright. Crinkled at the corners. She's always slightly amused.</dd>
+    <dt>Nose</dt><dd>Round, rosy, prominent. Pink-tipped. Warm and friendly.</dd>
+    <dt>Mouth</dt><dd>Natural resting expression is a gentle, closed-mouth smile. Deep smile lines.</dd>
+    <dt>Torso</dt><dd>Lavender hand-knit cardigan over a floral-print dress. Layers. A small apron. Everything slightly mismatched in a way that feels intentional and artistic.</dd>
+    <dt>Feet</dt><dd>Worn brown leather boots, practical, slightly too big. She shuffles slightly when she walks.</dd>
+    <dt>Signature Object</dt><dd>A large wicker basket, always overflowing with wildflowers, herbs, or occasionally something unexpected (a book, a strange stone, a bird's nest).</dd>
+  </dl>
+</div>
+
+<hr class="sep">
+
+<!-- ═══════════════════════ RELATIONSHIPS ═══════════════════════ -->
+<h2 id="relationships">7. Cast Relationships</h2>
+
+<div class="card">
+  <div class="rel-line">
+    <div class="rel-dot" style="background:var(--accent);"></div>
+    <div><strong>The Girl &harr; The Baker</strong> &mdash; The emotional core. She appears at his bakery uninvited. He pretends to be annoyed. He leaves bread where she'll find it. Neither acknowledges what's happening. This relationship should make viewers feel something before either character says a word about it.</div>
+  </div>
+  <div class="rel-line">
+    <div class="rel-dot" style="background:var(--green);"></div>
+    <div><strong>The Girl &harr; The Inventor Boy</strong> &mdash; An unlikely friendship. She is cautious; he is reckless. She grounds him; he pulls her out of her shell. Their friendship should feel earned, not assumed&mdash;developed through shared experience, not instant bonding.</div>
+  </div>
+  <div class="rel-line">
+    <div class="rel-dot" style="background:var(--lavender);"></div>
+    <div><strong>The Girl &harr; Baba Vela</strong> &mdash; The grandmother sees something in the girl that the girl doesn't see in herself. She gives her things (a flower, a word, a direction) that only make sense later. There is a deeper connection hinted at but never fully explained early on.</div>
+  </div>
+  <div class="rel-line">
+    <div class="rel-dot" style="background:var(--gold);"></div>
+    <div><strong>The Baker &harr; Baba Vela</strong> &mdash; They have history. Something happened years ago. They are cordial but there's a tension neither will explain. Baba Vela brings him flowers; he pretends not to notice. He sends bread to her cottage through the boy, never directly.</div>
+  </div>
+  <div class="rel-line">
+    <div class="rel-dot" style="background:var(--blue);"></div>
+    <div><strong>The Inventor Boy &harr; The Baker</strong> &mdash; The baker tolerates the boy because the boy is useful (he fixes things). The boy is terrified of the baker but fascinated by his oven. Comic dynamic. The boy is the one who delivers bread to Baba Vela, which means he's the unknowing messenger between two people who won't speak directly.</div>
+  </div>
+  <div class="rel-line">
+    <div class="rel-dot" style="background:var(--accent-soft);"></div>
+    <div><strong>The Inventor Boy &harr; Baba Vela</strong> &mdash; She gives him strange objects and says "you'll know what to do with this." He doesn't, until three episodes later when he does. She is the only person who never criticizes his inventions.</div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ═══════════════════════ PIPELINE ═══════════════════════ -->
+<h2 id="pipeline">8. Production Pipeline</h2>
+
+<p>The approved workflow for developing these characters into production-ready Blender assets.</p>
+
+<div class="pipeline-step">
+  <div class="step-num">1</div>
+  <div><strong>Character Identity Documents</strong> <span class="status-badge proposed" style="font-size:0.6rem;">Draft v0.1</span><br>Full personality, design, naming, relationship documentation for all cast members.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">2</div>
+  <div><strong>Executive Producer Review</strong> <span class="status-badge pending">Awaiting</span><br>You approve names, relationships, world concept, art direction, and proposed characters before any modeling begins.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">3</div>
+  <div><strong>Blender Blockout &mdash; Girl &amp; Baker</strong><br>Primary form blockouts using approved references. Proportion verification. Silhouette tests.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">4</div>
+  <div><strong>Geometry Refinement</strong><br>Secondary forms, facial topology, deformation-ready edge flow. Milestone renders for approval.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">5</div>
+  <div><strong>Materials &amp; Textures</strong><br>Full material development following the art direction material language. Shader documentation.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">6</div>
+  <div><strong>Facial System</strong><br>Shape keys or bone-based expressions. Eight required expressions per character. Asymmetry tests.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">7</div>
+  <div><strong>Rigging</strong><br>Character-appropriate skeletons. IK/FK where needed. Deformation testing. Animator-friendly controls.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">8</div>
+  <div><strong>Animation Readiness Tests</strong><br>Silhouette, expression, deformation, and performance tests per the studio checklist.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">9</div>
+  <div><strong>Audit Submission</strong><br>Complete character package submitted to Session 03 (Audit Studio) for independent review.</div>
+</div>
+<div class="pipeline-step">
+  <div class="step-num">10</div>
+  <div><strong>Character Release</strong><br>Final approved assets packaged and delivered to Session 02 (Animation Studio) for production.</div>
+</div>
+
+<p class="footer-note">Character Bible v0.1 &mdash; 3D Character Design &amp; Development Lab &mdash; Awaiting Executive Producer approval on names, world concept, proposed characters, and art direction before proceeding to Blender production.</p>
+
+</div>
