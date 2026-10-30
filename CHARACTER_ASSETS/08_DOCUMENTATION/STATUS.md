@@ -14,3 +14,5 @@
 Reference images: `02_REFERENCE/source_images/`. Images 3 and 4 are inspiration for proposed characters, not approved designs.
 
 Shared studio directives live in `/STUDIO_DIRECTIVES/`. Current: `SHORT_FORM_DISTRIBUTION_DIRECTIVE.md` (9:16 short-form, 15-45 s, YouTube/TikTok/Instagram).
+
+Addendum 01 (`STUDIO_DIRECTIVES/ADDENDUM_01_RESPONSIBILITIES_AND_DURATIONS.md`): Character Lab responsibility is characters, expressions and assets that read clearly in vertical mobile video. Duration tiers for testing are 15 s, 25-30 s and 40-45 s.
