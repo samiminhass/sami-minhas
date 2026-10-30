@@ -5,16 +5,16 @@ Repository: `samiminhass/sami-minhas`. Studio-wide documents live on branch `cla
 
 ## Departments
 
-| Session | Department | Session ID | Owns |
-|---------|------------|------------|------|
-| EP | Executive Producer (human) | — | Final creative authority, all approvals, the YouTube channel and brand, all publishing and account actions |
-| 01 | 3D Character Design & Development Lab | `session_01D6wRLhmJ7agjY25rura968` | Characters, expressions, models, materials, rigs, character release packages |
-| 02 | Animation & Film Production Studio | `session_01D6wRLgXUPHhH4gQF84wdTN` | Story, animation, cinematography, environments, sound, editing, platform deliverables |
-| 03 | Independent Creative & Technical Audit Studio | `session_01D6wRLgw1j8JZ8PCoMhwkTo` | Independent audits of both departments, `AUDIT_LOG.md` |
+| Session | Department | Session ID | Working branch | Owns |
+|---------|------------|------------|----------------|------|
+| EP | Executive Producer (human) | — | — | Final creative authority, all approvals, the YouTube channel and brand, all publishing and account actions |
+| 01 | 3D Character Design & Development Lab | `session_01D6wRLhmJ7agjY25rura968` | `claude/dreamy-wozniak-qzx8c8` | Characters, expressions, models, materials, rigs, character release packages; studio-wide documents |
+| 02 | Animation & Film Production Studio | `session_01D6wRLgXUPHhH4gQF84wdTN` | `claude/animation-studio-pilot-slate` | Story, animation, cinematography, environments, sound, editing, platform deliverables |
+| 03 | Independent Creative & Technical Audit Studio | `session_01D6wRLgw1j8JZ8PCoMhwkTo` | `claude/audit-studio` | Independent audits of both departments, `AUDIT_LOG.md` |
 
 ## How the sessions stay connected
 
-1. **Messages.** Session 01 can send messages to Sessions 02 and 03. Their tool lists show they can receive messages but cannot send them. So Session 01 relays notices between departments, and the EP can post directly in any session.
+1. **Messages.** Sessions can message each other directly with the `send_message` tool and the session IDs above. The Audit Studio has done so. Session 01 also relays between departments when needed, and the EP can post directly in any session.
 2. **Shared documents.** Studio-wide directives, the roster and EP decisions are in `STUDIO_DIRECTIVES/` on `claude/dreamy-wozniak-qzx8c8`. Read them with:
    ```bash
    git fetch origin claude/dreamy-wozniak-qzx8c8
