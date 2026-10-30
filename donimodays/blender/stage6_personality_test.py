@@ -137,7 +137,7 @@ for f, v in ((44, 0.1), (56, 0.25), (58, 0.25), (61, -0.85), (90, -0.85), (100, 
     kprop(MR, "mouth_smile", f, v)
 for f, v in ((57, 1.0), (60, 0.2), (64, -0.75), (67, -1.0), (88, -1.0), (102, -0.3), (F1, -0.3)):   # fast start, eased landing
     kprop(MR, "crest_mood", f, v)
-for f, v in ((59, 0.0), (66, -0.55), (69, -0.6), (90, -0.6), (104, -0.2), (F1, -0.2)):           # lean trails by 2-3 frames
+for f, v in ((60, 0.0), (67, -0.55), (70, -0.6), (90, -0.6), (104, -0.2), (F1, -0.2)):           # lean trails by 3 frames
     kprop(MR, "crest_lean", f, v)
 for k in ("L", "R"):
     for f, v in ((57, 0.05), (60, 0.0), (90, 0.0), (104, 0.15), (F1, 0.15)):
@@ -176,7 +176,10 @@ for f, v in ((64, 0.6), (80, 0.78), (F1, 0.78)):
 
 # ================================================================ STAGE 6: Nix
 NIX_START = Vector((0.6, -0.42, 1.05)); NIX_MID = Vector((0.16, -0.5, 0.78))
-NIX_TOUCH = FRAG + Vector((-0.098, -0.02, 0.05)); NIX_INNO = FRAG + Vector((-0.16, -0.06, 0.12))
+NIX_TOUCH = FRAG + Vector((-0.098, -0.02, 0.05))
+NIX_TOUCH += (NIX_MID - NIX_TOUCH).normalized() * 0.016   # back off along the approach: the option B body is larger
+NIX_TOUCH += Vector((-0.78, -0.25, 0.57)).normalized() * 0.02   # and away from the fragment, so the horn tip only grazes it
+NIX_INNO = FRAG + Vector((-0.16, -0.06, 0.12))
 for p_, v in (("attention", 0), ("fin_A_flare", 0), ("fin_B_flare", 0), ("fin_A_sweep", 0), ("fin_B_sweep", 0),
               ("lid_close", 0), ("lid_mischief", 0), ("lid_innocent", 0)):
     kprop(NR, p_, F0, v)
@@ -211,8 +214,12 @@ for _x in (-0.1, 0.0, 0.1, 0.2):
         _a = ves_gaze_to_nix(F1)
         if _best is None or _a < _best[0]:
             _best = (_a, (_x, -0.1, _z))
-kbone(VR, "head", 128, rot=(0.05, -0.1, -0.15))          # still looking at Morrow as Nix starts to hide
-kbone(VR, "head", 136, rot=_best[1]); kbone(VR, "head", F1, rot=_best[1])
+kbone(VR, "head", 131, rot=(0.05, -0.1, -0.15))          # still looking at Morrow as Nix starts to hide
+kbone(VR, "head", 135, rot=_best[1]); kbone(VR, "head", F1, rot=_best[1])   # blink, then a quick turn
+for f, v in ((129, 0), (131, 1), (133, 0)):
+    kprop(VR, "blink", f, v)
+for f, (l, r) in ((133, (0.0, 0.0)), (137, (0.5, -0.3)), (F1, (0.5, -0.3))):   # one dry, unimpressed brow
+    kprop(VR, "brow_tilt_L", f, l); kprop(VR, "brow_tilt_R", f, r)
 print(f"VESPER GLANCE gaze-to-Nix {_g0:.1f} deg before, {_best[0]:.1f} deg after, head {_best[1]}", flush=True)
 
 # ================================================================ STAGE 6: IK and look targets (need parents evaluated)
@@ -238,7 +245,7 @@ ves_side = min(("L", "R"), key=lambda k: ((VR.matrix_world @ VR.pose.bones[f"han
 scene.frame_set(F0)
 v_rest = (VR.matrix_world @ VR.pose.bones[f"hand_IK_{ves_side}"].matrix).to_translation()
 kworld(VR, f"hand_IK_{ves_side}", F0, v_rest); kworld(VR, f"hand_IK_{ves_side}", 64, v_rest)
-over = MOR_POS + mdir * 0.035 + Vector((0.03, 0.02, 0.69))
+over = MOR_POS + mdir * 0.035 + Vector((0.03, 0.02, 0.695))
 aim = (MOR_POS - VES_POS); aim.z = 0; aim = (aim.normalized() + Vector((0, 0, -0.25))).normalized()   # fingers reach over Morrow
 kworld(VR, f"hand_IK_{ves_side}", 64, v_rest)
 scene.frame_set(64); VR.pose.bones[f"hand_IK_{ves_side}"].keyframe_insert("rotation_euler", frame=64)
@@ -255,10 +262,11 @@ def ves_chest(f, side_off=0.0, fwd=0.2, up=0.27):
     return m @ Vector((side_off, up, fwd + 0.045))   # clear of the mantle surface
 for f in (F0, 64):
     kworld(VR, f"hand_IK_{v_oth}", f, v_rest2)
-kworld(VR, f"hand_IK_{v_oth}", 88, (VR.matrix_world @ VR.pose.bones[f"hand_IK_{v_oth}"].matrix).to_translation() if False else v_rest2)
 def ves_fwd(f):
     scene.frame_set(f)
     return ((VR.matrix_world @ VR.pose.bones["spine_3"].matrix).to_3x3() @ Vector((0, 0, 1))).normalized()
+for f in (76, 82, 88):          # the bow brings the mantle forward, so the waiting hand eases forward with it
+    kworld(VR, f"hand_IK_{v_oth}", f, v_rest2 + ves_fwd(f) * 0.05)
 kworld(VR, f"hand_IK_{v_oth}", 91, v_rest2.lerp(ves_chest(98), 0.3) + ves_fwd(91) * 0.06)   # arcs out in front of the mantle
 kworld(VR, f"hand_IK_{v_oth}", 94, v_rest2.lerp(ves_chest(98), 0.65) + ves_fwd(94) * 0.06)
 kworld(VR, f"hand_IK_{v_oth}", 98, ves_chest(98))                      # hand rises to its collar as it looks away
@@ -337,6 +345,24 @@ for f in range(F0, F1 + 1):
         r_ = (pb.tail - pb.head).length / MR.data.bones[f"leg_{k}"].length
         if r_ < _leg[0]: _leg[0], _leg[2] = r_, f
         if r_ > _leg[1]: _leg[1], _leg[3] = r_, f
+from mathutils.bvhtree import BVHTree as _BVH
+def _bvh(o):
+    oe = o.evaluated_get(bpy.context.evaluated_depsgraph_get()); me = oe.to_mesh()
+    t = _BVH.FromPolygons([oe.matrix_world @ v.co for v in me.vertices], [tuple(p.vertices) for p in me.polygons]); oe.to_mesh_clear(); return t
+_O = bpy.data.objects
+_pairs = [("Nix vs fragment", [o for o in _O if o.name.startswith(("NIX_body", "NIX_edge"))], [frag], range(40, 70)),
+          ("Vesper hands vs mantle", [o for o in _O if o.name.startswith("VES_hand_") and o.type == 'MESH'],
+           [_O["VES_mantle_crescent"], _O["VES_panel_back_calm"], _O["VES_hood"]], range(60, 120)),
+          ("Vesper hand vs Morrow crest", [o for o in _O if o.name.startswith("VES_hand_") and o.type == 'MESH'],
+           [_O["MOR_crest"], _O["MOR_crest_fork"]], range(60, 120))]
+for _nm, _a, _b, _fr in _pairs:
+    _hit = []
+    for f in _fr:
+        scene.frame_set(f)
+        _tb = [_bvh(o) for o in _b]
+        if any(_bvh(o).overlap(t) for o in _a for t in _tb):
+            _hit.append(f)
+    print(f"CONTACT CHECK {_nm}: {len(_hit)} frames {_hit[:12]}", flush=True)
 print(f"LEG CHECK length {_leg[0]:.2f}x (frame {_leg[2]}) to {_leg[1]:.2f}x (frame {_leg[3]}) of rest", flush=True)
 scene.frame_set(F0)
 
