@@ -137,7 +137,7 @@ for f, v in ((44, 0.1), (56, 0.25), (58, 0.25), (61, -0.85), (90, -0.85), (100, 
     kprop(MR, "mouth_smile", f, v)
 for f, v in ((57, 1.0), (60, 0.2), (64, -0.75), (67, -1.0), (88, -1.0), (102, -0.3), (F1, -0.3)):   # fast start, eased landing
     kprop(MR, "crest_mood", f, v)
-for f, v in ((60, 0.0), (67, -0.55), (70, -0.6), (90, -0.6), (104, -0.2), (F1, -0.2)):           # lean trails by 3 frames
+for f, v in ((60, 0.0), (69, 0.0), (74, -0.55), (77, -0.6), (90, -0.6), (104, -0.2), (F1, -0.2)):   # lean comes after the hand arrives
     kprop(MR, "crest_lean", f, v)
 for k in ("L", "R"):
     for f, v in ((57, 0.05), (60, 0.0), (90, 0.0), (104, 0.15), (F1, 0.15)):
@@ -201,26 +201,35 @@ for f, (c, m_, i_) in ((48, (0, 0, 0)), (51, (0, 0.8, 0)), (57, (0, 0.8, 0)), (6
     kprop(NR, "lid_close", f, c); kprop(NR, "lid_mischief", f, m_); kprop(NR, "lid_innocent", f, i_)
 
 # ================================================================ STAGE 6: Vesper's dry glance at Nix in the hold
-# measured, not guessed: try head turns at the last frame and keep the one whose gaze lands nearest Nix
-def ves_gaze_to_nix(f):
-    scene.frame_set(f)
-    h = VR.matrix_world @ VR.pose.bones["head"].head; e = VR.matrix_world @ VR.pose.bones["eye_target"].head
-    return math.degrees((e - h).angle(nix.matrix_world.translation - h))
-_g0 = ves_gaze_to_nix(F1)
+# measured, not guessed: try head turns at the last frame and keep the one whose FACE points nearest Nix.
+# The face direction is mask centre to the eyes (the head bone's own axes mostly roll the face, which reads
+# as a tilt, not a look)
+def _ctr(o):
+    oe = o.evaluated_get(bpy.context.evaluated_depsgraph_get()); me = oe.to_mesh()
+    c_ = sum((oe.matrix_world @ v.co for v in me.vertices), Vector()) / len(me.vertices); oe.to_mesh_clear(); return c_
+def ves_face_to(target):
+    e = (_ctr(bpy.data.objects["VES_eye_L"]) + _ctr(bpy.data.objects["VES_eye_R"])) / 2
+    return math.degrees((e - _ctr(bpy.data.objects["VES_mask"])).angle(target - e))
+scene.frame_set(F1); _g0 = ves_face_to(nix.matrix_world.translation)
 _best = None
-for _x in (-0.1, 0.0, 0.1, 0.2):
-    for _z in [i_ / 10 for i_ in range(-8, 9)]:
-        kbone(VR, "head", F1, rot=(_x, -0.1, _z))
-        _a = ves_gaze_to_nix(F1)
-        if _best is None or _a < _best[0]:
-            _best = (_a, (_x, -0.1, _z))
+_vals = [i_ / 10 for i_ in range(-5, 6)]
+for _x in _vals:
+    for _y in _vals:
+        for _z in _vals:
+            VR.pose.bones["head"].rotation_euler = (_x, _y, _z); bpy.context.view_layer.update()
+            _a = ves_face_to(nix.matrix_world.translation)
+            if _best is None or _a < _best[0]:
+                _best = (_a, (_x, _y, _z))
 kbone(VR, "head", 131, rot=(0.05, -0.1, -0.15))          # still looking at Morrow as Nix starts to hide
 kbone(VR, "head", 135, rot=_best[1]); kbone(VR, "head", F1, rot=_best[1])   # blink, then a quick turn
 for f, v in ((129, 0), (131, 1), (133, 0)):
     kprop(VR, "blink", f, v)
+for f, v in ((131, 0.6), (135, 0.95), (F1, 0.95)):      # the halo counter-rotates harder as the head dips toward Nix
+    kprop(VR, "halo_level", f, v)
 for f, (l, r) in ((133, (0.0, 0.0)), (137, (0.5, -0.3)), (F1, (0.5, -0.3))):   # one dry, unimpressed brow
     kprop(VR, "brow_tilt_L", f, l); kprop(VR, "brow_tilt_R", f, r)
-print(f"VESPER GLANCE gaze-to-Nix {_g0:.1f} deg before, {_best[0]:.1f} deg after, head {_best[1]}", flush=True)
+scene.frame_set(150); _gm = ves_face_to(_ctr(bpy.data.objects["MOR_face"]))
+print(f"VESPER GLANCE face-to-Nix {_g0:.1f} deg before, {_best[0]:.1f} deg after (face-to-Morrow {_gm:.1f}), head {_best[1]}", flush=True)
 
 # ================================================================ STAGE 6: IK and look targets (need parents evaluated)
 mor_side = min(("L", "R"), key=lambda k: ((MR.matrix_world @ MR.pose.bones[f"hand_IK_{k}"].head) - FRAG).length)
@@ -245,7 +254,7 @@ ves_side = min(("L", "R"), key=lambda k: ((VR.matrix_world @ VR.pose.bones[f"han
 scene.frame_set(F0)
 v_rest = (VR.matrix_world @ VR.pose.bones[f"hand_IK_{ves_side}"].matrix).to_translation()
 kworld(VR, f"hand_IK_{ves_side}", F0, v_rest); kworld(VR, f"hand_IK_{ves_side}", 64, v_rest)
-over = MOR_POS + mdir * 0.035 + Vector((0.03, 0.02, 0.695))
+over = MOR_POS + mdir * 0.035 + Vector((0.03, 0.02, 0.70))
 aim = (MOR_POS - VES_POS); aim.z = 0; aim = (aim.normalized() + Vector((0, 0, -0.25))).normalized()   # fingers reach over Morrow
 kworld(VR, f"hand_IK_{ves_side}", 64, v_rest)
 scene.frame_set(64); VR.pose.bones[f"hand_IK_{ves_side}"].keyframe_insert("rotation_euler", frame=64)
