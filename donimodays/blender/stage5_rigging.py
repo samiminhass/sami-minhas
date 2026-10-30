@@ -1083,9 +1083,47 @@ def drive(idblock, path, index, expr, rig, props):
 def pb_drive(rig, bone, channel, axis, expr, props):
     return drive(rig.pose.bones[bone], channel, axis, expr, rig, props)
 
-def ik_arm(rig, side, forearm, ik):
+def pole_angle(rig, upper, lower, pole_pos):
+    """Pole angle that keeps the chain exactly in its rest pose (armature space)."""
+    bu, bl = rig.data.bones[upper], rig.data.bones[lower]
+    base_h, base_t, ik_t = bu.head_local, bu.tail_local, bl.tail_local
+    pole_normal = (ik_t - base_h).cross(Vector(pole_pos) - base_h)
+    proj = pole_normal.cross(base_t - base_h)
+    x_axis = bu.matrix_local.col[0].xyz
+    a = x_axis.angle(proj)
+    if (base_t - base_h).dot(x_axis.cross(proj)) < 0:
+        a = -a
+    return a
+
+def ik_arm(rig, side, forearm, ik, upper=None, pole=None):
     c = rig.pose.bones[forearm].constraints.new('IK')
     c.target = rig; c.subtarget = ik; c.chain_count = 2
+    if pole:
+        c.pole_target = rig; c.pole_subtarget = pole
+        c.pole_angle = pole_angle(rig, upper, forearm, rig.data.bones[pole].head_local)
+        solve_pole(rig, upper, forearm, c)
+    return c
+
+def solve_pole(rig, upper, lower, c):
+    """Search for the pole angle that leaves the arm exactly in its rest pose."""
+    bu, bl = rig.data.bones[upper], rig.data.bones[lower]
+    def err(a):
+        c.pole_angle = a; upd()
+        mu = rig.pose.bones[upper].matrix; ml = rig.pose.bones[lower].matrix
+        return ((mu.col[0].xyz - bu.matrix_local.col[0].xyz).length + (mu.col[1].xyz - bu.matrix_local.col[1].xyz).length
+                + (ml.col[3].xyz - bl.matrix_local.col[3].xyz).length * 10)
+    best = min((err(math.radians(d)), math.radians(d)) for d in range(-180, 180, 10))[1]
+    for step in (2.0, 0.25, 0.03):
+        cands = [best + math.radians(step) * i for i in range(-6, 7)]
+        best = min((err(a), a) for a in cands)[1]
+    c.pole_angle = best
+    upd()
+
+def pole_pos(sh, el, wr, fallback):
+    mid = (Vector(sh) + Vector(wr)) / 2
+    bend = Vector(el) - mid
+    d = bend.normalized() if bend.length > 1e-4 else Vector(fallback)
+    return Vector(el) + d * 0.15
 
 def finger_chain_bones(prefix, pts, parent, up):
     out = []
@@ -1122,6 +1160,8 @@ def rig_morrow(root, tag="MOR"):
               dict(name=f"forearm_{k}", head=ap[1], tail=ap[-1], parent=f"upperarm_{k}", up=(0, -1, 0)),
               dict(name=f"hand_{k}", head=ap[-1], tail=palm + (palm - ap[-1]), parent=f"forearm_{k}", up=(0, 0, 1)),
               dict(name=f"hand_IK_{k}", head=ap[-1], tail=palm + (palm - ap[-1]), parent="body", up=(0, 0, 1))]
+        pp = pole_pos(ap[0], ap[1], ap[-1], (0, 0.3, -0.2))
+        B.append(dict(name=f"elbow_pole_{k}", head=pp, tail=pp + Vector((0, 0, 0.02)), parent="body"))
         for f in ("finger1", "finger2", "thumb"):
             fp = centerline(O[f"{tag}_hand_{k}_{f}"], 3)
             FPTS[(k, f)] = fp
@@ -1158,7 +1198,7 @@ def rig_morrow(root, tag="MOR"):
         ao = O[f"{tag}_arm_{k}"]; ap = ARMPTS[k]
         am = to_mesh(ao)
         skin(am, rig, [f"upperarm_{k}", f"forearm_{k}"], [ap[0], ap[1], ap[-1]], blend=0.4, min_bw=0.025)
-        ik_arm(rig, k, f"forearm_{k}", f"hand_IK_{k}")
+        ik_arm(rig, k, f"forearm_{k}", f"hand_IK_{k}", f"upperarm_{k}", f"elbow_pole_{k}")
         cr = rig.pose.bones[f"hand_{k}"].constraints.new('COPY_ROTATION'); cr.target = rig; cr.subtarget = f"hand_IK_{k}"
         dt = rig.pose.bones[f"eye_{k}"].constraints.new('DAMPED_TRACK'); dt.target = rig; dt.subtarget = "eye_target"
     co = O[f"{tag}_crest"]; cm = to_mesh(co)
@@ -1248,6 +1288,9 @@ def rig_vesper(root, tag="VES"):
          dict(name="eye_target", head=M + hout * 0.5, tail=M + hout * 0.5 + Vector((0, 0, 0.04)), parent="head")]
     for i in range(3):
         B.append(dict(name=f"fragment_{i+1}", head=hc, tail=hc + N * 0.04, parent="halo", up=V))
+    # mantle follow bones: they copy the spine, plus a baked delay offset (see bake_follow_through)
+    for i in range(3):
+        B.append(dict(name=f"mantle_{i+1}", head=sp[i], tail=sp[i + 1], parent=("root" if i == 0 else f"mantle_{i}"), up=(0, -1, 0)))
     for k, side in (("L", -1), ("R", 1)):
         ec = bbox_center(O[f"{tag}_eye_{k}"])
         B += [dict(name=f"lid_up_{k}", head=ec, tail=ec + hright * 0.02, parent="head", up=hup),
@@ -1262,6 +1305,8 @@ def rig_vesper(root, tag="VES"):
               dict(name=f"forearm_{k}", head=el, tail=wr, parent=f"upperarm_{k}", up=(0, -1, 0)),
               dict(name=f"hand_{k}", head=wr, tail=palm + (palm - wr), parent=f"forearm_{k}", up=(0, -1, 0)),
               dict(name=f"hand_IK_{k}", head=wr, tail=palm + (palm - wr), parent="spine_3", up=(0, -1, 0))]
+        pp = pole_pos(sh, el, wr, (side * 0.3, 0.3, 0))
+        B.append(dict(name=f"elbow_pole_{k}", head=pp, tail=pp + Vector((0, 0, 0.03)), parent="spine_3"))
         for f in ("finger1", "finger2", "finger3", "thumb"):
             fp = centerline(O[f"{tag}_hand_{k}_{f}"], 3)
             VFP[(k, f)] = fp
@@ -1269,7 +1314,7 @@ def rig_vesper(root, tag="VES"):
     rig = make_rig(f"RIG_{tag}", coll, B)
 
     # deforming mantle: smooth weights along the spine
-    chain, pts = ["spine_1", "spine_2", "spine_3"], sp
+    chain, pts = ["mantle_1", "mantle_2", "mantle_3"], sp
     for nm in ("core", "panel_back_calm", "mantle_crescent", "panel_right_med", "panel_frontL_med", "hood"):
         skin(O[f"{tag}_{nm}"], rig, chain, pts, blend=1.0)
     tm = to_mesh(O[f"{tag}_mantle_trim"]); skin(tm, rig, chain, pts, blend=1.0)
@@ -1296,8 +1341,11 @@ def rig_vesper(root, tag="VES"):
             fo = O[f"{tag}_hand_{k}_{f}"]; fp = VFP[(k, f)]
             fm = to_mesh(fo); skin(fm, rig, [f"{f}_{k}_{i+1}" for i in range(len(fp) - 1)], fp, min_bw=0.01)
             bone_parent(O[f"{tag}_hand_{k}_{tipn}"], rig, f"{f}_{k}_{len(fp)-1}")
-        ik_arm(rig, k, f"forearm_{k}", f"hand_IK_{k}")
+        ik_arm(rig, k, f"forearm_{k}", f"hand_IK_{k}", f"upperarm_{k}", f"elbow_pole_{k}")
         cr = rig.pose.bones[f"hand_{k}"].constraints.new('COPY_ROTATION'); cr.target = rig; cr.subtarget = f"hand_IK_{k}"
+    for i in range(3):
+        c = rig.pose.bones[f"mantle_{i+1}"].constraints.new('COPY_ROTATION')
+        c.target = rig; c.subtarget = f"spine_{i+1}"; c.owner_space = 'LOCAL'; c.target_space = 'LOCAL'; c.mix_mode = 'BEFORE'
 
     def var(fc, nm, prop):
         v = fc.driver.variables.new(); v.name = nm; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["{prop}"]'
@@ -1386,8 +1434,112 @@ for r in (mor, ves, nix):
     r.location = (0, 0, 0); r.rotation_euler = (0, 0, 0)
 upd()
 apply_color()
+# heather on the inside faces of Vesper's mantle panels
+for nm in ("panel_back_calm", "mantle_crescent", "panel_right_med", "panel_frontL_med", "hood"):
+    ob = bpy.data.objects[f"VES_{nm}"]
+    me = ob.data
+    me.materials.append(MATS["ves_inner"])
+    for pg in me.polygons:
+        c = pg.center
+        axis = spine(c.z)
+        radial = Vector((c.x - axis.x, c.y - axis.y, 0))
+        if pg.normal.dot(radial) < 0:
+            pg.material_index = len(me.materials) - 1
+
+C_WGT = make_coll("WGT_widgets"); C_WGT.hide_render = True; C_WGT.hide_viewport = True
+def widget(name, kind):
+    if name in bpy.data.objects:
+        return bpy.data.objects[name]
+    bm = bmesh.new()
+    if kind == "circle":
+        bmesh.ops.create_circle(bm, cap_ends=False, segments=32, radius=1.0)
+    elif kind == "square":
+        for a_ in range(4):
+            bm.verts.new((math.cos(math.radians(45 + 90 * a_)), 0, math.sin(math.radians(45 + 90 * a_))))
+        bm.verts.ensure_lookup_table()
+        for a_ in range(4):
+            bm.edges.new((bm.verts[a_], bm.verts[(a_ + 1) % 4]))
+    elif kind == "diamond":
+        pts_ = [(0, 0, 1), (1, 0, 0), (0, 0, -1), (-1, 0, 0)]
+        vs = [bm.verts.new(p_) for p_ in pts_]
+        for a_ in range(4):
+            bm.edges.new((vs[a_], vs[(a_ + 1) % 4]))
+    elif kind == "sphere":
+        for ax in range(3):
+            ring = []
+            for a_ in range(24):
+                t_ = 2 * math.pi * a_ / 24; v_ = [0, 0, 0]
+                v_[ax] = math.cos(t_); v_[(ax + 1) % 3] = math.sin(t_)
+                ring.append(bm.verts.new(v_))
+            for a_ in range(24):
+                bm.edges.new((ring[a_], ring[(a_ + 1) % 24]))
+    me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    ob = bpy.data.objects.new(name, me); C_WGT.objects.link(ob)
+    return ob
+
+WIDGETS = [("root", "circle", 1.6), ("body", "circle", 1.0), ("spine_", "circle", 1.2), ("neck", "circle", 0.8),
+           ("head", "circle", 1.2), ("hand_IK_", "square", 0.6), ("elbow_pole_", "diamond", 0.5), ("eye_target", "sphere", 0.5),
+           ("halo", "circle", 1.0), ("fragment_", "diamond", 0.6), ("attention", "sphere", 0.5), ("fin_", "diamond", 0.6),
+           ("ember", "sphere", 0.6), ("leg_", "circle", 0.8), ("foot_", "square", 0.6)]
+def organize(rig):
+    arm = rig.data
+    cols = {n: arm.collections.new(n) for n in ("Controls", "Face", "Fingers", "Deform and mechanics")}
+    for b in arm.bones:
+        n = b.name
+        pb = rig.pose.bones[n]
+        hit = next((w for w in WIDGETS if (n == w[0] or (w[0].endswith("_") and n.startswith(w[0])))), None)
+        if hit:
+            pb.custom_shape = widget("WGT_" + hit[1], hit[1]); pb.custom_shape_scale_xyz = (hit[2],) * 3
+            pb.use_custom_shape_bone_size = True
+            cols["Controls"].assign(b)
+        elif n.startswith(("lid_", "brow_", "eye_", "crest_")):
+            pb.custom_shape = widget("WGT_circle", "circle"); pb.custom_shape_scale_xyz = (0.6,) * 3
+            cols["Face"].assign(b)
+        elif n.startswith(("finger", "thumb")):
+            cols["Fingers"].assign(b)
+        else:
+            cols["Deform and mechanics"].assign(b)
+    cols["Deform and mechanics"].is_visible = False
+    arm.display_type = 'OCTAHEDRAL'
+
 RIGS = {"morrow": (mor, rig_morrow(mor)), "vesper": (ves, rig_vesper(ves)), "nix": (nix, rig_nix(nix))}
+for _r, _rig in RIGS.values():
+    organize(_rig)
 upd()
+
+def bake_follow_through(rig, frames, pairs, delay=3, scale=1.0):
+    """Follow-through tool. For each (follower_bone, source_bone), key the follower's own rotation so it
+    trails the source by `delay` frames. Run it after the source bones are animated."""
+    samples = {}
+    for f in frames:
+        scene.frame_set(f)
+        for fol, src in pairs:
+            samples[(src, f)] = Vector(rig.pose.bones[src].rotation_euler)
+    for f in frames:
+        for fol, src in pairs:
+            past = samples.get((src, max(frames[0], f - delay)), samples[(src, f)])
+            off = (past - samples[(src, f)]) * scale
+            pb = rig.pose.bones[fol]
+            pb.rotation_euler = off
+            pb.keyframe_insert("rotation_euler", frame=f)
+
+def bake_lag(rig, frames, bone, driver_bone, k=0.35, smooth=0.6):
+    """Ember-style lag. Keys `bone`'s location opposite to the recent motion of `driver_bone`,
+    so it trails behind sudden moves and settles when movement stops."""
+    prev = None; off = Vector()
+    for f in frames:
+        scene.frame_set(f)
+        m = rig.matrix_world @ rig.pose.bones[driver_bone].matrix
+        pos = m.to_translation()
+        vel = (pos - prev) if prev is not None else Vector()
+        prev = pos
+        off = off * smooth + (-vel * k) * (1 - smooth) * 10
+        if off.length > 0.012:
+            off = off.normalized() * 0.012
+        local = m.to_3x3().inverted() @ off
+        pb = rig.pose.bones[bone]
+        pb.location = local
+        pb.keyframe_insert("location", frame=f)
 
 # ================================================================ STAGE 5: tests
 def eval_coords(ob):
@@ -1553,6 +1705,28 @@ for name in POSES:
     passed += ok; failed += (not ok)
     report(f"| {name} | {nparts} | {worst[1]} | {glo:.2f} | {ghi:.2f} | {'PASS' if ok else 'FAIL'} |")
     reset(rig)
+report("\n## Rig mechanics tests\n")
+report("| Test | Measured | Result |\n| --- | --- | --- |")
+for key, (root, rig) in RIGS.items():
+    reset(rig)
+    for c in [c for pb in rig.pose.bones for c in pb.constraints if c.type == 'IK']:
+        arm_ob = next((o for o in part_objects(root) if o.name.endswith("_arm_" + c.subtarget[-1])), None) or \
+                 next(o for o in part_objects(root) if o.name.endswith("_forearm_" + c.subtarget[-1]))
+        c.mute = True; upd(); a_ = eval_coords(arm_ob)
+        c.mute = False; upd(); b_ = eval_coords(arm_ob)
+        mv = max((x - y).length for x, y in zip(a_, b_)) * 1000
+        ok = mv < 0.5; passed += ok; failed += (not ok)
+        report(f"| {key}: elbow pole on {c.subtarget} leaves rest pose unchanged | {mv:.3f} mm drift | {'PASS' if ok else 'FAIL'} |")
+    ctrl = [b.name for b in rig.data.bones if any(b.name == w[0] or (w[0].endswith('_') and b.name.startswith(w[0])) for w in WIDGETS)]
+    missing = [n for n in ctrl if rig.pose.bones[n].custom_shape is None]
+    ok = not missing; passed += ok; failed += (not ok)
+    report(f"| {key}: every control bone has a viewport widget | {len(ctrl)} controls, {len(missing)} missing | {'PASS' if ok else 'FAIL'} |")
+r_ = RIGS["vesper"][1]; reset(r_)
+r_.pose.bones["spine_2"].rotation_euler = (0.3, 0, 0); upd()
+d_ = (r_.pose.bones["mantle_2"].matrix.to_quaternion().rotation_difference(r_.pose.bones["spine_2"].matrix.to_quaternion())).angle
+ok = d_ < 1e-3; passed += ok; failed += (not ok)
+report(f"| vesper: mantle follow bones match the spine when no delay is baked | {math.degrees(d_):.4f} degrees | {'PASS' if ok else 'FAIL'} |")
+reset(r_)
 report(f"\n**Total: {passed} passed, {failed} failed.**")
 
 if OUT:

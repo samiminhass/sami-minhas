@@ -15,8 +15,14 @@ The rigs are built by `stage5_rigging.py`, which also runs the tests in
 - **Only parts that must bend deform:** Morrow's arms, fingers, and crest, plus
   Vesper's fingers and mantle. They use smooth weights and volume-preserving
   (dual quaternion) deformation.
-- **Arms use IK.** Move the `hand_IK_L` and `hand_IK_R` bones and the arm follows.
-  These targets ride with the body, so leaning does not fold the elbows.
+- **Arms use IK with elbow poles.** Move the `hand_IK_L` and `hand_IK_R` bones and
+  the arm follows. Move `elbow_pole_L` and `elbow_pole_R` to aim the elbows. The
+  pole angles are solved so the rest pose stays exactly in place. The hand targets
+  ride with the body, so leaning does not fold the elbows.
+- **Viewport widgets.** Every control bone has an on-screen shape: circles for body
+  controls, squares for hands, diamonds for poles, fins, and fragments, spheres for
+  look targets. Bones are grouped into Controls, Face, Fingers, and a hidden
+  "Deform and mechanics" collection.
 
 ## Morrow (`RIG_MOR`)
 
@@ -39,7 +45,8 @@ The rigs are built by `stage5_rigging.py`, which also runs the tests in
 | `body` | Leans the seed body. The legs stay planted |
 | `hand_IK_L`, `hand_IK_R` | Hand targets: reach, hug, point |
 | `eye_target` | Where both pupils look |
-| `ember` | Offset this a little behind fast moves for the "ember lags behind" effect |
+| `ember` | Lags behind sudden moves. Run `bake_lag` after animating the body |
+| `elbow_pole_L`, `elbow_pole_R` | Aim the elbows |
 | `leg_L`, `leg_R`, `foot_L`, `foot_R` | Steps and balance corrections |
 
 ## Vesper (`RIG_VES`)
@@ -58,7 +65,8 @@ The rigs are built by `stage5_rigging.py`, which also runs the tests in
 | Bone | Use |
 | --- | --- |
 | `root` | Moves the whole character |
-| `spine_1`, `spine_2`, `spine_3` | Bends the mantle. Rotate forward together for the bow |
+| `spine_1`, `spine_2`, `spine_3` | The bow. The mantle follows through `mantle_1` to `mantle_3` |
+| `elbow_pole_L`, `elbow_pole_R` | Aim the elbows |
 | `neck`, `head` | Head tilt, its main way of showing emotion |
 | `hand_IK_L`, `hand_IK_R` | Hand targets. One long hand can shelter Morrow |
 | `halo`, `fragment_1` to `fragment_3` | Hand-key the halo and fragments on top of the sliders |
@@ -80,25 +88,41 @@ The rigs are built by `stage5_rigging.py`, which also runs the tests in
 | `root` | Position and rotation. Rotate about 65 degrees to turn edge-on and "disappear" |
 | `body` | Secondary wobble on top of the root |
 
+## Follow-through tools
+
+Two functions in `stage5_rigging.py` add secondary motion after the main animation
+is keyed. Stage 6 uses both.
+
+- **`bake_follow_through(rig, frames, pairs, delay)`** makes Vesper's mantle trail
+  the spine by a few frames. The mantle bones copy the spine, and the tool keys a
+  delay offset on top. Without a bake, the mantle follows the spine exactly.
+- **`bake_lag(rig, frames, "ember", "body")`** makes Morrow's ember drift opposite
+  to sudden body moves and settle when the body stops.
+
 ## Test results
 
-**45 of 45 tests pass.** Every control was checked to move the part it controls.
-Every deforming part was measured against its rest shape in each story pose and in
-one deliberate "range" pose per character. The worst edge stretch is 1.41 and the
-worst compression is 0.70. The limits are 1.8 and 0.5.
+**53 of 53 tests pass.**
+
+- **Every control moves the part it controls.**
+- **Deformation stays within limits.** Every deforming part was measured in each
+  story pose and one deliberate "range" pose per character. The worst edge stretch
+  is 1.41 and the worst compression is 0.70. The limits are 1.8 and 0.5.
+- **The elbow poles leave the rest pose in place.** The largest drift is 0.07 millimetres.
+- **Every control bone has a viewport widget.**
+- **The mantle follow bones match the spine exactly** when no delay is baked.
 
 ## Known limits
 
-- **Only static poses were tested.** No motion over time has been tested yet.
-  Stage 6 is the first real test of animation.
-- **The ember does not lag on its own.** Its lag is animated by hand on the `ember` bone.
-- **Vesper's mantle has no automatic delayed follow.** Panels bend with the spine.
-  A delayed follow would need offset keys or a physics pass.
-- **The arm IK has no pole targets.** Elbows follow the rest bend direction. Extreme
-  targets behind the body can flip the elbow.
-- **The controls are sliders, not on-screen widgets.** Custom bone shapes would make
-  them easier to grab in the viewport.
+- **The follow-through is baked, not live.** After changing the animation, run the
+  bake tools again.
+- **The controls were not checked by eye in the viewport.** Everything was built and
+  tested headless. The widgets exist and are assigned, but their on-screen sizes may
+  need adjusting when you open the file.
+- **Eevee cannot run in this cloud container,** which has no graphics drivers. All
+  renders use Cycles. Eevee should work normally on your own computer.
 - **Two design changes were made for rigging.** Morrow's crest ribbon is now flat
   and facing front, so it curls cleanly instead of twisting. Nix's fins are now
   rigid paddles that swing from the base, because bending such short, thick fins
   tore them in testing.
+- **Vesper's panels now have heather interiors.** The inside faces carry the
+  heather material, so the plum shows through openings as designed.
