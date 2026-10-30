@@ -34,8 +34,9 @@ Full design notes, rig controls, and test results are in `blender/RIG_GUIDE.md`,
 
 ### Morrow, the protagonist
 
-A small porcelain seed with a crescent-shaped hole through its body. A loose amber
-ember floats inside the hole and shows what Morrow feels. Gold-mended cracks show
+A small porcelain seed with a teardrop-shaped hole through its body, the tip pointing
+up at its face. A loose amber ember floats in the round of the drop and shows what
+Morrow feels. Gold-mended cracks show
 it has been broken before.
 
 - **Personality:** curious, stubborn, easily startled, unexpectedly brave.
@@ -47,8 +48,9 @@ it has been broken before.
 
 ### Vesper, the guardian
 
-A tall, formal figure of overlapping midnight panels. Its dark stone face floats inside
-a broken antique-gold halo. Three fragments of the halo orbit it.
+A tall, formal figure wrapped in one wide midnight crescent that sweeps from its right
+shoulder down under its left arm, echoing its broken halo. Its dark stone face floats
+inside that broken antique-gold halo. Three fragments of the halo orbit it.
 
 - **Personality:** patient, overly formal, quietly funny, anxious about making mistakes.
 - **Contradiction:** it can preserve a moment, but cannot bring back the people who
@@ -61,14 +63,14 @@ a broken antique-gold halo. Three fragments of the halo orbit it.
 
 ### Nix, the troublemaker
 
-A tiny floating crescent with a round bite missing. A coral line runs along its inner
-edge, and an "attention bead" orbits through its open centre.
+A tiny floating crescent with a bite taken out of its lower edge and two small fins
+tucked under its back. A coral line runs along its inner edge, and an "attention bead" orbits through its open centre.
 
 - **Personality:** fearless, nosy, theatrical, and secretly afraid of being ignored.
 - **Contradiction:** it steals the spotlight, but turns edge-on to disappear when
   someone pays it real attention.
 - **Signature moves:** fast curved darts, then a dead-still hover. Its bead points
-  at whatever it wants.
+  at whatever it wants. Smug is a heavy, flat lid line; innocent is two round, wide eyes.
 - **Palette:** eclipse `#1D1424`, lilac pearl eyes `#E8E3EE`, ember rose edge `#FF7A5C`.
 
 ## Series
@@ -99,11 +101,14 @@ The topics stay the same. Each becomes a format for this cast.
 ## Production checklist for every video
 
 1. Write a beat sheet: what each character wants, what goes wrong, and the final held pose.
-2. Block it with the rigs in `blender/cast_rigged_v05.blend`, using controls only.
-3. Check the faces at phone size (about 180 by 320 pixels).
-4. Run the follow-through bakes: Vesper's mantle and Morrow's ember.
-5. Render the cuts, add sound, and add captions only if the story needs them.
-6. In YouTube's upload settings, check the altered or synthetic content setting.
+2. Build any new dream objects the beat sheet needs (a shell, a stair of fragments, a book).
+   None exist yet beyond Vesper's halo fragments and the floating dream fragment from stage 6.
+3. Block it with the rigs, using controls only. The characters are built by
+   `blender/cast_build.py`; build each scene on that file so rig fixes reach every episode.
+4. Check the faces at phone size (about 180 by 320 pixels).
+5. Run the follow-through bakes: Vesper's mantle and Morrow's ember.
+6. Render the cuts, add sound, and add captions only if the story needs them.
+7. In YouTube's upload settings, check the altered or synthetic content setting.
 
 ## Rules for news, mystery, and exploration episodes
 

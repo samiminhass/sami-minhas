@@ -32,7 +32,7 @@ Each is a silent beat sheet for the Blender rigs. Control names are from
 | --- | --- | --- | --- | --- |
 | 1 | 0-4 s | Wide | Morrow tries to climb a drifting stair of dream fragments and slips | `body`, feet, `crest_mood` -1 |
 | 2 | 4-9 s | Montage | Again and again. Its ember dims and lags further each time | `ember` bake |
-| 3 | 9-14 s | Medium | Morrow sits, arms hugging itself, crest folded back | `grip` 0.9, `brow_worry` 1 |
+| 3 | 9-14 s | Medium | Morrow sits, arms hugging itself, crest folded back | `grip` 0.9, `brow_worry` 1, `body` down at most 3 cm (the legs keep their volume, but deeper squats look rubbery) |
 | 4 | 14-21 s | Medium | Vesper bows and opens one long hand. Inside floats a preserved moment: a tiny Morrow, falling, getting up | `spine` bow, `hand_IK`, `frag_shelter` |
 | 5 | 21-27 s | Close-up | Morrow's brows rise. Its crest lifts slowly | `brow_worry` 0, `crest_mood` 0 to 1 |
 | 6 | 27-32 s | Wide | Try one hundred: Morrow climbs, wobbles, and reaches the top | Steps, `body` balance |
@@ -53,7 +53,7 @@ Each is a silent beat sheet for the Blender rigs. Control names are from
 | # | Time | Shot | What happens | Main controls |
 | --- | --- | --- | --- | --- |
 | 1 | 0-4 s | Wide | A heavy old book drifts down and lands open. Strange writing glows faintly | Book light only |
-| 2 | 4-10 s | Insert | Plant drawings unfold off the pages. Caption: made in the early 1400s | |
+| 2 | 4-10 s | Insert | Plant drawings unfold off the pages. Caption: its pages date from the early 1400s | |
 | 3 | 10-16 s | Medium | Morrow tries to read it, tilting its whole body. Nothing makes sense | `body` tilt, `brow_worry`, `eye_target` |
 | 4 | 16-22 s | Close-up | Nix's bead races across the lines, then stops, confused | `attention` |
 | 5 | 22-30 s | Medium | Vesper leans in, then slowly closes the book with great formality. Caption: nobody has ever decoded it | `spine`, `hand_IK`, `grip` |
