@@ -355,12 +355,12 @@ def build_morrow(coll, P=None, tag="MOR"):
         cylinder(f"{tag}_shoulder_{k}", coll, "mor_joint", sh - Vector((side * 0.01, 0, 0)), sh + Vector((side * 0.012, 0, 0)), 0.023)
         default = [sh, sh + Vector((side * 0.06, -0.035, -0.085)), sh + Vector((side * 0.045, -0.075, -0.18))]
         pts = ([sh] + [Vector(p) for p in arms[k]]) if k in arms else default
-        curve(f"{tag}_arm_{k}", coll, "mor_shell", pts, 0.022, [1.15, .9, .72] + [.7] * (len(pts) - 3))
+        curve(f"{tag}_arm_{k}", coll, "mor_shell", pts, 0.022, [1.2, .85, .6] + [.6] * (len(pts) - 3))   # tapers toward the wrist
         fwd = (pts[-1] - pts[-2]).normalized()
         sidev = fwd.cross(Vector((0, 0, 1))).normalized() * (-side)
         if sidev.length < 0.1:
             sidev = Vector((side, 0, 0))
-        hand(f"{tag}_hand_{k}", coll, "mor_shell", pts[-1], fwd, sidev, 0.064, fingers=2, curl=P.get("curl", 0.45), thick=0.21)
+        hand(f"{tag}_hand_{k}", coll, "mor_shell", pts[-1], fwd, sidev, 0.054, fingers=2, curl=P.get("curl", 0.45), thick=0.21)   # 15 percent smaller
 
     # signature rest pose: Morrow carries a dream fragment hugged to its chest
     if P.get("carry"):
@@ -511,9 +511,9 @@ def build_vesper(coll, P=None, tag="VES"):
     U = Rt @ Vector((1, 0, 0)); V = Rt @ Vector((0, 0, 1))
     tube_arc(f"{tag}_halo", coll, "ves_brass", hc, 0.17, 0.024, 104, 346, U, V, seg=72, rscale=(1.0, 1.5))
     for i, ang in enumerate((104, 346)):
-        tube_arc(f"{tag}_halo_break_{i+1}", coll, "ves_brass", hc, 0.17, 0.03, ang - (6 if i else 0), ang + (0 if i else 6), U, V,
-                 seg=4, ring=7, rscale=(1.1, 1.5), jitter=0.3, seed=11 + i)
-    frag = P.get("fragments", [(0.215, 22, 0), (0.235, 52, 1), (0.215, 82, 2)])
+        tube_arc(f"{tag}_halo_break_{i+1}", coll, "ves_brass", hc, 0.17, 0.024, ang - (5 if i else 0), ang + (0 if i else 5), U, V,
+                 seg=4, ring=12, rscale=(1.0, 1.5), jitter=0.06, seed=11 + i)   # clean fracture at the ring's own thickness
+    frag = P.get("fragments", [(0.245, 18, 0), (0.265, 52, 1), (0.245, 88, 2)])   # clear of the ring and of each other
     for i, (rad, ang, seed) in enumerate(frag):
         o = tube_arc(f"{tag}_fragment_{i+1}", coll, "ves_brass", hc, rad, 0.02, ang - 13 - seed * 2, ang + 13, U, V,
                      seg=14, ring=12, rscale=(1.0, 1.35), jitter=0.22, seed=seed + 3)
@@ -551,9 +551,8 @@ def build_nix(coll, P=None, tag="NIX"):
     a = cylinder(f"{tag}_body", coll, "nix_body", (0, -dep / 2, 0), (0, dep / 2, 0), R, seg=96)
     b = cylinder("tmpB", coll, "nix_body", od * off + Vector((0, -1, 0)), od * off + Vector((0, 1, 0)), r, seg=96)
     boolean(a, b)
-    Mcut = Matrix.Translation((0.07, 0, -0.062)) @ Matrix.Rotation(math.radians(40), 4, 'Y') @ Matrix.Diagonal((0.06, 0.2, 0.07, 1))
-    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1); xform(bm, Mcut)
-    boolean(a, finish("tmpCut", bm, coll, "nix_body"))
+    BITE_C, BITE_R = Vector((0.07, 0, -0.072)), 0.034     # the bite: a clean, round scallop out of the lower horn
+    boolean(a, cylinder("tmpCut", coll, "nix_body", BITE_C + Vector((0, -0.2, 0)), BITE_C + Vector((0, 0.2, 0)), BITE_R, seg=64))
     rm = a.modifiers.new("remesh", 'REMESH'); rm.mode = 'VOXEL'; rm.voxel_size = 0.0016
     bake_modifiers(a)
     cB0 = od * off
@@ -572,11 +571,9 @@ def build_nix(coll, P=None, tag="NIX"):
 
     # upgrade 2: narrow luminous coral edge along the inner curve of the crescent
     cB = od * off
-    Mi = Mcut.inverted()
     def on_body(t):
         p = cB + Vector((math.cos(t), 0, math.sin(t))) * r
-        q = Mi @ p
-        return p.length < R - 0.004 and not all(abs(c) <= 0.5 for c in q)
+        return p.length < R - 0.004 and (Vector((p.x, 0, p.z)) - BITE_C).length > BITE_R + 0.002
     flags = [on_body(math.radians(k)) for k in range(360)]
     start = flags.index(False)
     runs, cur = [], None
@@ -596,7 +593,7 @@ def build_nix(coll, P=None, tag="NIX"):
     fc = Vector((-0.045, -dep / 2 - 0.0012, -0.004))
     for side in (-1, 1):
         k = 'L' if side < 0 else 'R'
-        ec0 = fc + Vector((side * 0.0128, 0, side * -0.003))
+        ec0 = fc + Vector((side * 0.0142, 0, side * -0.003))
         hit_e, n_e = raycast(a, (ec0.x, -1, ec0.z), (0, 1, 0))
         ec = hit_e + Vector((0, 0.0012, 0)) if hit_e is not None else ec0
         eye = sphere(f"{tag}_eye_{k}", coll, "nix_eye", ec, (0.0075, 0.0034, 0.012),
@@ -763,8 +760,8 @@ P = {k: hx(v) for k, v in PAL.items()}
 
 MATDEF = {
     "mor_shell": dict(color=P["porcelain"], color2=P["porcelain_dk"], noise=55, rough=0.5, sss=0.12, sss_r=(0.9, 0.55, 0.4), coat=0.12),
-    "mor_face": dict(color=P["celadon_ink"], rough=0.62, coat=0.35, sheen=0.25, sheen_tint=(0.7, 0.9, 0.85)),
-    "mor_lid": dict(color=P["celadon_ink"], rough=0.62, coat=0.35),
+    "mor_face": dict(color=P["celadon_ink"], rough=0.62, coat=0.05, coat_r=0.3, sheen=0.25, sheen_tint=(0.7, 0.9, 0.85)),   # matte, soft
+    "mor_lid": dict(color=P["celadon_ink"], rough=0.62, coat=0.05, coat_r=0.3),
     "mor_joint": dict(color=P["celadon_joint"], rough=0.65, coat=0.2),
     "mor_eye": dict(color=P["pearl"], rough=0.2, coat=0.7),
     "mor_pupil": dict(color=P["pupil"], rough=0.08, coat=1.0),
@@ -776,17 +773,17 @@ MATDEF = {
     "ves_mantle": dict(color=P["ink_slate"], rough=0.74),
     "ves_collar": dict(color=P["ink_slate_lt"], rough=0.74),
     "ves_inner": dict(color=P["heather"], rough=0.8, sheen=0.3, sheen_tint=(0.9, 0.8, 0.9)),
-    "ves_brass": dict(color=P["antique_gold"], color2=P["antique_gold_dk"], noise=30, metal=1.0, rough=0.36, rough2=0.62, aniso=0.35),
+    "ves_brass": dict(color=P["antique_gold"], color2=hx("#9A7846"), noise=30, metal=1.0, rough=0.36, rough2=0.46, aniso=0.35),   # smooth old gold
     "ves_trim": dict(color=P["antique_gold_dk"], color2=P["antique_gold"], noise=30, metal=1.0, rough=0.45),
-    "ves_mask": dict(color=P["graphite"], color2=P["ink_deep"], noise=70, rough=0.72, bump=0.25),
+    "ves_mask": dict(color=hx("#3B3838"), color2=P["graphite"], noise=70, rough=0.72, bump=0.25),   # one step above the mantle, still far below the hands
     "ves_lid": dict(color=P["graphite"], rough=0.72),
     "ves_brow": dict(color=P["graphite_lt"], rough=0.66),
     "ves_eye": dict(color=P["vesper_pearl"], rough=0.2, coat=0.6),
     "ves_arm": dict(color=P["ink_deep"], rough=0.7),
     "ves_hand": dict(color=P["dove_mauve"], rough=0.55, sheen=0.2),
     "ves_neck": dict(color=P["ink_deep"], rough=0.8),
-    "nix_body": dict(color=P["eclipse"], rough=0.3, coat=0.3, film=380),
-    "nix_fin": dict(color=P["eclipse_fin"], rough=0.3, coat=0.3, film=380),
+    "nix_body": dict(color=P["eclipse"], rough=0.5, coat=0.05, coat_r=0.3),   # satin, not wet
+    "nix_fin": dict(color=P["eclipse_fin"], rough=0.5, coat=0.05, coat_r=0.3),
     "nix_eye": dict(color=P["lilac_pearl"], rough=0.4),
     "nix_edge": dict(color=P["ember_rose"], emit=P["ember_rose"], emit_s=12.0),
     "nix_bead": dict(color=P["bead"], emit=P["bead"], emit_s=11.0),
@@ -804,7 +801,7 @@ def build_material(m, d):
     b = node(nt, "ShaderNodeBsdfPrincipled", (300, 0))
     nt.links.new(b.outputs[0], out.inputs[0])
     setp(b, "Base Color", (*d["color"], 1)); setp(b, "Roughness", d.get("rough", 0.5)); setp(b, "Metallic", d.get("metal", 0.0))
-    setp(b, "Coat Weight", d.get("coat", 0.0)); setp(b, "Sheen Weight", d.get("sheen", 0.0))
+    setp(b, "Coat Weight", d.get("coat", 0.0)); setp(b, "Coat Roughness", d.get("coat_r", 0.03)); setp(b, "Sheen Weight", d.get("sheen", 0.0))
     setp(b, "Sheen Tint", (*d.get("sheen_tint", (1, 1, 1)), 1)); setp(b, "Anisotropic", d.get("aniso", 0.0))
     setp(b, "Transmission Weight", d.get("trans", 0.0))
     if d.get("film"):   # oil-slick sheen: teal and rose shift on grazing angles
@@ -841,8 +838,8 @@ def apply_color():
         out = next(n for n in nt.nodes if n.type == 'OUTPUT_MATERIAL')
         bsdf = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
         cd = node(nt, "ShaderNodeCameraData", (-200, 400))
-        mr = node(nt, "ShaderNodeMapRange", (0, 400)); mr.inputs["From Min"].default_value = 3.0; mr.inputs["From Max"].default_value = 14.0
-        em = node(nt, "ShaderNodeEmission", (200, 300)); em.inputs["Color"].default_value = (*hx("#2E2636"), 1); em.inputs["Strength"].default_value = 1.0
+        mr = node(nt, "ShaderNodeMapRange", (0, 400)); mr.inputs["From Min"].default_value = 2.5; mr.inputs["From Max"].default_value = 9.0
+        em = node(nt, "ShaderNodeEmission", (200, 300)); em.inputs["Color"].default_value = (*hx("#5E4B55"), 1); em.inputs["Strength"].default_value = 1.0
         mx = node(nt, "ShaderNodeMixShader", (450, 100))
         nt.links.new(cd.outputs["View Distance"], mr.inputs["Value"]); nt.links.new(mr.outputs["Result"], mx.inputs["Fac"])
         nt.links.new(bsdf.outputs[0], mx.inputs[1]); nt.links.new(em.outputs[0], mx.inputs[2]); nt.links.new(mx.outputs[0], out.inputs[0])
@@ -854,13 +851,10 @@ def dream_world():
     bm = bmesh.new(); bmesh.ops.create_circle(bm, cap_ends=True, segments=128, radius=80)
     g = finish("DRM_ground", bm, C_DRM, "drm_ground")
     # the great broken moon: a crescent with a missing piece, far behind
-    mc = Vector((1.6, 7.0, 2.4))
-    a = cylinder("DRM_moon", C_DRM, "drm_moon", mc, mc + Vector((0, 0.15, 0)), 1.3, seg=128)
-    b = cylinder("tmpM", C_DRM, "drm_moon", mc + Vector((0.5, -0.5, 0.32)), mc + Vector((0.5, 0.7, 0.32)), 1.15, seg=128)
+    mc = Vector((2.2, 7.0, 2.9))   # smaller, higher, further right, and whole: no bite, so it stops echoing Nix
+    a = cylinder("DRM_moon", C_DRM, "drm_moon", mc, mc + Vector((0, 0.15, 0)), 0.9, seg=128)
+    b = cylinder("tmpM", C_DRM, "drm_moon", mc + Vector((0.35, -0.5, 0.22)), mc + Vector((0.35, 0.7, 0.22)), 0.8, seg=128)
     boolean(a, b)
-    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1)   # the moon's missing piece
-    xform(bm, Matrix.Translation(mc + Vector((-1.1, 0, -0.55))) @ Matrix.Rotation(math.radians(30), 4, 'Y') @ Matrix.Diagonal((0.5, 1, 0.22, 1)))
-    boolean(a, finish("tmpMC", bm, C_DRM, "drm_moon"))
     # broken moments drifting in the air
     import random
     rr = random.Random(21)
@@ -1415,14 +1409,14 @@ def rig_nix(root, tag="NIX"):
     fc0 = Vector((-0.045, -dep / 2 - 0.0012, -0.004))
     eye_c = {}
     for k, side in (("L", -1), ("R", 1)):
-        ec0 = fc0 + Vector((side * 0.0128, 0, side * -0.003))
+        ec0 = fc0 + Vector((side * 0.0142, 0, side * -0.003))
         hit_e, _ = raycast(body, (ec0.x, -1, ec0.z), (0, 1, 0))
         eye_c[k] = hit_e + Vector((0, 0.0012, 0)) if hit_e is not None else ec0
     with bpy.context.temp_override(scene=scene, view_layer=VL, active_object=rig, object=rig, selected_objects=[rig]):
         VL.objects.active = rig
         bpy.ops.object.mode_set(mode='EDIT')
         for k in ("L", "R"):
-            eb = rig.data.edit_bones.new(f"lid_{k}"); eb.head = eye_c[k]; eb.tail = eye_c[k] + Vector((0, 0, 0.012))
+            eb = rig.data.edit_bones.new(f"lid_{k}"); eb.head = eye_c[k]; eb.tail = eye_c[k] + Vector((0, 0, 0.0156))
             eb.align_roll(Vector((0, -1, 0))); eb.parent = rig.data.edit_bones["body"]; eb.use_deform = False
         bpy.ops.object.mode_set(mode='OBJECT')
     for k in ("L", "R"):
@@ -1431,13 +1425,13 @@ def rig_nix(root, tag="NIX"):
         eo = O[f"{tag}_eye_{k}"]
         rot = Euler((0, math.radians(side * 10), 0)).to_matrix().to_4x4()
         bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=40, v_segments=28, radius=1)
-        xform(bm, Matrix.Translation(eye_c[k]) @ rot @ Matrix.Diagonal((0.0075, 0.0034, 0.012, 1)))
+        xform(bm, Matrix.Translation(eye_c[k]) @ rot @ Matrix.Diagonal((0.00975, 0.0044, 0.0156, 1)))   # 1.3x larger eyes
         old = eo.data; me = bpy.data.meshes.new(eo.name); bm.to_mesh(me); bm.free()
         for pg in me.polygons:
             pg.use_smooth = True
         me.materials.append(mat_for("nix_eye")); eo.data = me; bpy.data.meshes.remove(old)
         bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1)
-        xform(bm, Matrix.Translation(eye_c[k] + Vector((0, 0, 0.012 + 0.02))) @ Matrix.Diagonal((0.04, 0.05, 0.04, 1)))
+        xform(bm, Matrix.Translation(eye_c[k] + Vector((0, 0, 0.0156 + 0.02))) @ Matrix.Diagonal((0.04, 0.05, 0.04, 1)))
         cm = bpy.data.meshes.new(f"{tag}_lidcut_{k}"); bm.to_mesh(cm); bm.free()
         cut = bpy.data.objects.new(f"{tag}_lidcut_{k}", cm); coll.objects.link(cut)
         cut.display_type = 'WIRE'; cut.hide_render = True
@@ -1458,9 +1452,9 @@ def rig_nix(root, tag="NIX"):
     add_prop(rig, "lid_innocent", 0, 0, 1, "Lids slant outward: innocent")
     add_prop(rig, "lid_rest", 0.25, 0, 0.6, "Resting lid cover")
     for k, side in (("L", -1), ("R", 1)):
-        fc = drive(rig.pose.bones[f"lid_{k}"], "location", 1, "-0.0205*min(1, max(c, r + 0.2*max(m, i)))", rig, [])
+        fc = drive(rig.pose.bones[f"lid_{k}"], "location", 1, "-0.0265*min(1, max(c, r + 0.35*m + 0.2*i))", rig, [])
         var(fc, "c", "lid_close"); var(fc, "r", "lid_rest"); var(fc, "m", "lid_mischief"); var(fc, "i", "lid_innocent")
-        fc = drive(rig.pose.bones[f"lid_{k}"], "rotation_euler", 1, f"{side}*radians(30*i - 30*m)", rig, [])
+        fc = drive(rig.pose.bones[f"lid_{k}"], "rotation_euler", 1, f"{side}*radians(30*i)", rig, [])
         var(fc, "m", "lid_mischief"); var(fc, "i", "lid_innocent")
     rig.parent = root
     return rig
@@ -1595,6 +1589,13 @@ FRAG = Vector((-0.30, -0.24, 0.42))
 mor.location = MOR_POS; mor.rotation_euler = (0, 0, math.radians(MOR_ROT))
 ves.location = VES_POS; ves.rotation_euler = (0, 0, math.radians(VES_ROT))
 upd()
+
+# a soft rim light that only Nix receives (light linking), so it separates from Vesper's dark mantle
+_nl = bpy.data.lights.new("S6_nix_rim", 'AREA'); _nl.energy = 18; _nl.size = 0.4; _nl.color = hx("#FFC9B8")
+nix_rim = bpy.data.objects.new("S6_nix_rim", _nl); C_DLG.objects.link(nix_rim)
+nix_rim.location = (-0.55, 0.45, 1.0)
+nix_rim.rotation_euler = (Vector((-0.35, -0.25, 0.5)) - nix_rim.location).to_track_quat('-Z', 'Y').to_euler()
+nix_rim.light_linking.receiver_collection = C_NIX
 
 # the dream fragment, with its own glowing material and a light that only flares when it reacts
 frag = dream_shard("S6_dream_fragment", C_S6, Vector((0, 0, 0)), seed=11)
