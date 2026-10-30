@@ -1606,7 +1606,7 @@ def bake_lag(rig, frames, bone, driver_bone, k=0.35, smooth=0.6):
 
 
 # ================================================================ STAGE 6: scene setup
-FPS, F0, F1 = 24, 1, 144
+FPS, F0, F1 = 24, 1, 168   # 7 s: the last 1.5 s is the held reaction pose
 scene.render.fps = FPS; scene.frame_start = F0; scene.frame_end = F1
 MR, VR, NR = RIGS["morrow"][1], RIGS["vesper"][1], RIGS["nix"][1]
 mode_dream()
@@ -1707,21 +1707,24 @@ for k in ("L", "R"):
 kprop(MR, "blink", 6, 0); kprop(MR, "blink", 8, 1); kprop(MR, "blink", 10, 0)
 # root: anticipation then two quick uneven steps toward the fragment, a balance correction, then the startle hop back
 mdir = (FRAG - MOR_POS); mdir.z = 0; mdir.normalize()
-steps = [(F0, 0.0, 0.0), (24, 0.0, 0.0), (29, 0.045, 0.012), (31, 0.05, 0.0), (35, 0.05, 0.0), (38, 0.075, 0.008), (40, 0.08, 0.0),
-         (58, 0.08, 0.0), (62, 0.03, 0.03), (65, 0.02, 0.0), (F1, 0.02, 0.0)]
-for f, d, hop in steps:
-    mor.location = MOR_POS + mdir * d + Vector((0, 0, hop)); mor.keyframe_insert("location", frame=f)
-for f, ang in ((F0, MOR_ROT), (24, MOR_ROT), (40, MOR_ROT - 6), (F1, MOR_ROT - 6)):
-    mor.rotation_euler = (0, 0, math.radians(ang)); mor.keyframe_insert("rotation_euler", frame=f)
-body = [(F0, (0, 0, 0)), (18, (0, 0, 0)), (23, (-0.12, 0, 0)), (27, (0.06, 0, 0)), (31, (0.03, 0.06, 0)), (33, (0.04, -0.05, 0)),
-        (36, (0.05, 0.0, 0)), (44, (0.16, 0, 0)), (57, (0.17, 0, 0)), (61, (-0.22, 0.05, 0)), (66, (-0.1, 0, 0)), (90, (-0.08, 0, 0)),
-        (104, (0.02, -0.05, 0)), (F1, (0.0, -0.04, 0))]
+# body: a little sway and glance in the first second, anticipation, steps, the lean, the startle, and a slow recovery.
+# rotation y turns the body on its vertical axis (the old root turn), so the planted feet do not slide
+body = [(F0, (0, 0, 0)), (7, (0.035, 0.04, 0)), (13, (0.0, -0.02, 0)), (18, (0, 0, 0)), (23, (-0.12, 0, 0)), (27, (0.06, 0, 0)),
+        (31, (0.03, 0.02, 0)), (33, (0.04, -0.09, 0)), (36, (0.05, -0.05, 0)), (44, (0.16, -0.1, 0)), (57, (0.17, -0.1, 0)),
+        (61, (-0.22, -0.05, 0)), (66, (-0.1, -0.1, 0)), (90, (-0.08, -0.1, 0)), (104, (0.02, -0.15, 0)), (132, (0.0, -0.14, 0)), (F1, (0.0, -0.14, 0))]
 for f, r in body:
     kbone(MR, "body", f, rot=r)
-for f, (lz, rz) in ((F0, (0, 0)), (26, (0, 0)), (28, (0.02, 0)), (31, (0, 0)), (36, (0, 0)), (37, (0, 0.016)), (40, (0, 0)),
-                    (60, (0, 0)), (62, (0.012, 0.012)), (65, (0, 0)), (F1, (0, 0))):
-    kbone(MR, "leg_L", f, loc=(0, 0, 0)); kbone(MR, "foot_L", f, rot=(-lz * 12, 0, 0))
-    kbone(MR, "foot_R", f, rot=(-rz * 12, 0, 0))
+scene.frame_set(F0)
+B0 = (MR.matrix_world @ MR.pose.bones["body"].matrix).to_translation()
+FT0 = {k: (MR.matrix_world @ MR.pose.bones[f"foot_{k}"].matrix).to_translation() for k in ("L", "R")}
+for f, d, hop in ((F0, 0.0, 0.0), (24, 0.0, 0.0), (31, 0.045, 0.006), (35, 0.05, 0.0), (40, 0.08, 0.004), (58, 0.08, 0.0),
+                  (60, 0.075, 0.012), (62, 0.04, 0.035), (64, 0.035, 0.0), (F1, 0.035, 0.0)):
+    kworld(MR, "body", f, B0 + mdir * d + Vector((0, 0, hop)))
+steps_L = ((F0, 0.0, 0.0), (25, 0.0, 0.0), (28, 0.03, 0.02), (31, 0.06, 0.0), (58, 0.06, 0.0), (60, 0.055, 0.015), (63, 0.02, 0.0), (F1, 0.02, 0.0))
+steps_R = ((F0, 0.0, 0.0), (35, 0.0, 0.0), (37, 0.045, 0.018), (40, 0.095, 0.0), (58, 0.095, 0.0), (60, 0.09, 0.015), (63, 0.05, 0.0), (F1, 0.05, 0.0))
+for k, steps_ in (("L", steps_L), ("R", steps_R)):
+    for f, d, lift in steps_:
+        kworld(MR, f"foot_{k}", f, FT0[k] + mdir * d + Vector((0, 0, lift)))
 # expressions through the story
 for f, v in ((44, 0.1), (56, 0.25), (58, 0.25), (61, -0.85), (90, -0.85), (100, -0.2), (F1, -0.15)):
     kprop(MR, "mouth_smile", f, v)
@@ -1739,6 +1742,7 @@ for k in ("L", "R"):
     for f, v in ((40, 0.45), (46, 0.15), (58, 0.15), (63, 0.9), (F1, 0.85)):
         kprop(MR, f"grip_{k}", f, v)
 kprop(MR, "blink", 112, 0); kprop(MR, "blink", 114, 1); kprop(MR, "blink", 116, 0)
+kprop(MR, "blink", 150, 0); kprop(MR, "blink", 152, 1); kprop(MR, "blink", 154, 0)
 
 # ================================================================ STAGE 6: Vesper (bow keys first, IK later)
 for p_, v in (("frag_shelter", 0), ("frag_spread", 0), ("frag_fluster", 0), ("lid_upper_L", 0.4), ("lid_upper_R", 0.3),
@@ -1765,7 +1769,7 @@ for f, v in ((64, 0.6), (80, 0.78), (F1, 0.78)):
 
 # ================================================================ STAGE 6: Nix
 NIX_START = Vector((0.6, -0.42, 1.05)); NIX_MID = Vector((0.16, -0.5, 0.78))
-NIX_TOUCH = FRAG + Vector((-0.085, -0.02, 0.05)); NIX_INNO = FRAG + Vector((-0.16, -0.06, 0.12))
+NIX_TOUCH = FRAG + Vector((-0.098, -0.02, 0.05)); NIX_INNO = FRAG + Vector((-0.16, -0.06, 0.12))
 for p_, v in (("attention", 0), ("fin_A_flare", 0), ("fin_B_flare", 0), ("fin_A_sweep", 0), ("fin_B_sweep", 0),
               ("lid_close", 0), ("lid_mischief", 0), ("lid_innocent", 0)):
     kprop(NR, p_, F0, v)
@@ -1775,7 +1779,7 @@ path = [(F0, NIX_START), (38, NIX_START), (43, NIX_MID), (48, NIX_TOUCH + Vector
 for f, p_ in path:
     nix.location = p_; nix.keyframe_insert("location", frame=f)
 for f, r in ((F0, (0, 0.6, -0.6)), (38, (0, 0.6, -0.6)), (44, (0, 0.9, -0.2)), (49, (0, 0.15, 0.25)), (56, (0, 0.15, 0.25)),
-             (61, (0, -0.2, 0.3)), (96, (0, -0.2, 0.3)), (110, (0, -0.1, 0.5)), (122, (0, 0.07, 0.45)), (132, (0, -0.06, 0.5)), (F1, (0, 0.0, 0.48))):
+             (61, (0, -0.2, 0.3)), (96, (0, -0.2, 0.3)), (110, (0, -0.1, 0.5)), (120, (0, 0.07, 0.45)), (124, (0, 0.05, 0.47)), (130, (0, 0.0, 1.5)), (F1, (0, 0.0, 1.52))):
     nix.rotation_euler = r; nix.keyframe_insert("rotation_euler", frame=f)
 for f, (fa, fb_, sw) in ((38, (0, 0, 0)), (42, (0.3, 0.3, 1.0)), (48, (0.6, 0.6, 0.5)), (51, (0.2, 0.2, 0)), (54, (1.0, 0.1, -0.3)),
                          (57, (1.0, 0.1, -0.3)), (60, (-1.0, -1.0, 0.2)), (70, (-0.3, -0.3, 0)), (100, (-0.3, -0.3, 0)),
@@ -1792,13 +1796,13 @@ oth = "R" if mor_side == "L" else "L"
 scene.frame_set(F0)
 rest_hand = {k: (MR.matrix_world @ MR.pose.bones[f"hand_IK_{k}"].matrix).to_translation() for k in ("L", "R")}
 reach = FRAG + (rest_hand[mor_side] - FRAG).normalized() * 0.085
-chest = lambda f: (MR.matrix_world @ MR.pose.bones["body"].matrix) @ Vector((0, 0.17, -0.02))
+chest = lambda f: (MR.matrix_world @ MR.pose.bones["body"].matrix) @ Vector((0, 0.17, 0.18))
 for f in (F0, 40):
     kworld(MR, f"hand_IK_{mor_side}", f, rest_hand[mor_side])
 kworld(MR, f"hand_IK_{mor_side}", 47, reach); kworld(MR, f"hand_IK_{mor_side}", 57, reach + Vector((0, 0, 0.005)))
 for k in ("L", "R"):
     scene.frame_set(64)
-    tgt = (MR.matrix_world @ MR.pose.bones["body"].matrix) @ Vector(((0.05 if k == "L" else -0.05), 0.2, -0.1))
+    tgt = (MR.matrix_world @ MR.pose.bones["body"].matrix) @ Vector(((0.06 if k == "L" else -0.06), 0.16, 0.2))
     kworld(MR, f"hand_IK_{k}", 64, tgt); kworld(MR, f"hand_IK_{k}", F1, tgt)
 kworld(MR, f"hand_IK_{oth}", 57, (MR.matrix_world @ MR.pose.bones[f"hand_IK_{oth}"].matrix).to_translation())
 look = [(F0, FRAG + Vector((0.25, -0.2, 0.1))), (12, FRAG + Vector((0.25, -0.2, 0.1))), (16, FRAG), (56, FRAG), (60, FRAG + Vector((0, 0, 0.05))),
@@ -1809,7 +1813,7 @@ ves_side = min(("L", "R"), key=lambda k: ((VR.matrix_world @ VR.pose.bones[f"han
 scene.frame_set(F0)
 v_rest = (VR.matrix_world @ VR.pose.bones[f"hand_IK_{ves_side}"].matrix).to_translation()
 kworld(VR, f"hand_IK_{ves_side}", F0, v_rest); kworld(VR, f"hand_IK_{ves_side}", 64, v_rest)
-over = MOR_POS + mdir * 0.015 + Vector((0.03, 0.02, 0.66))
+over = MOR_POS + mdir * 0.035 + Vector((0.03, 0.02, 0.69))
 aim = (MOR_POS - VES_POS); aim.z = 0; aim = (aim.normalized() + Vector((0, 0, -0.25))).normalized()   # fingers reach over Morrow
 kworld(VR, f"hand_IK_{ves_side}", 64, v_rest)
 scene.frame_set(64); VR.pose.bones[f"hand_IK_{ves_side}"].keyframe_insert("rotation_euler", frame=64)
@@ -1823,7 +1827,7 @@ v_rest2 = (VR.matrix_world @ VR.pose.bones[f"hand_IK_{v_oth}"].matrix).to_transl
 def ves_chest(f, side_off=0.0, fwd=0.2, up=0.27):
     scene.frame_set(f)
     m = VR.matrix_world @ VR.pose.bones["spine_3"].matrix
-    return m @ Vector((side_off, up, fwd))
+    return m @ Vector((side_off, up, fwd + 0.045))   # clear of the mantle surface
 for f in (F0, 64):
     kworld(VR, f"hand_IK_{v_oth}", f, v_rest2)
 kworld(VR, f"hand_IK_{v_oth}", 88, (VR.matrix_world @ VR.pose.bones[f"hand_IK_{v_oth}"].matrix).to_translation() if False else v_rest2)
@@ -1860,25 +1864,19 @@ def where(ob_name, f):
     pts = [ob.matrix_world @ Vector(c_) for c_ in ob.bound_box]
     return sum(pts, Vector()) / 8
 
-WIDE_T, WIDE_V = Vector((-0.15, -0.1, 0.82)), (0.05, -1.0, 0.1)
+WIDE_T, WIDE_V = Vector((-0.1, -0.1, 0.86)), (0.05, -1.0, 0.1)
 morrow_face_62 = where("MOR_face", 62)
-nix_118 = where("NIX_body", 118)
+nix_118 = where("NIX_body", 122)
+_faces = [where("MOR_face", f) for f in range(67, 79)]
+cu_t = sum(_faces, Vector()) / len(_faces) + Vector((0, 0, 0.03))
 SHOTS = [  # (first frame, camera)
-    (1, make_cam("CAM_1_wide_notice", WIDE_T, WIDE_V, 2.02, push=0.08, f_in=1, f_out=38)),
-    (39, make_cam("CAM_2_insert_touch", Vector((-0.31, -0.26, 0.45)), (0.3, -1.0, 0.1), 0.62, lens=50, push=0.03, f_in=39, f_out=56)),
-    (57, make_cam("CAM_3_closeup_startle", morrow_face_62 + Vector((0.0, 0, 0.04)), (-0.25, -1.0, 0.06), 0.42, lens=60, push=0.0, f_in=57, f_out=70)),
-    (71, make_cam("CAM_4_medium_shelter", Vector((-0.02, -0.05, 0.86)), (0.1, -1.0, 0.1), 1.55, lens=45, push=0.06, f_in=71, f_out=110)),
-    (111, make_cam("CAM_5_closeup_innocent", nix_118 + Vector((-0.005, 0, 0.0)), (-0.4, -1.0, 0.06), 0.3, lens=60, push=0.01, f_in=111, f_out=128)),
-    (129, make_cam("CAM_6_wide_final", WIDE_T + Vector((0, 0, -0.02)), WIDE_V, 1.95, push=0.03, f_in=129, f_out=144)),
+    (1, make_cam("CAM_1_wide_notice", WIDE_T, WIDE_V, 2.25, push=0.08, f_in=1, f_out=40)),
+    (41, make_cam("CAM_2_insert_touch_flare", Vector((-0.27, -0.24, 0.46)), (0.3, -1.0, 0.1), 0.82, lens=50, push=0.03, f_in=41, f_out=66)),
+    (67, make_cam("CAM_3_closeup_startle", cu_t, (-0.25, -1.0, 0.06), 0.5, lens=60, push=0.0, f_in=67, f_out=78)),
+    (79, make_cam("CAM_4_medium_shelter", Vector((-0.14, -0.08, 0.84)), (0.1, -1.0, 0.1), 1.6, lens=45, push=0.06, f_in=79, f_out=112)),
+    (113, make_cam("CAM_5_closeup_innocent", nix_118 + Vector((-0.005, 0, 0.0)), (-0.4, -1.0, 0.06), 0.34, lens=60, push=0.01, f_in=113, f_out=132)),
+    (133, make_cam("CAM_6_wide_final_hold", WIDE_T + Vector((0, 0, -0.02)), WIDE_V, 2.15, push=0.03, f_in=133, f_out=F1)),
 ]
-# the startle close-up follows Morrow's face through the hop, then holds
-c3 = SHOTS[2][1]; v3 = Vector((-0.25, -1.0, 0.06)).normalized()
-d3 = (0.42 / 2) / math.tan(math.atan(12 / 60))
-c3.animation_data_clear()
-for f in (57, 59, 62, 70):
-    t3 = where("MOR_face", f) + Vector((0.0, 0, 0.04))
-    c3.location = t3 + v3 * d3; c3.rotation_euler = (-v3).to_track_quat('-Z', 'Y').to_euler()
-    c3.keyframe_insert("location", frame=f); c3.keyframe_insert("rotation_euler", frame=f)
 for f, c_ in SHOTS:                     # timeline markers bound to cameras, so the cuts also work in Blender
     mk = scene.timeline_markers.new(c_.name, frame=f); mk.camera = c_
 def camera_for(f):
@@ -1909,7 +1907,6 @@ if OUT:
     os.makedirs(os.path.join(OUT, "frames"), exist_ok=True)
     if os.environ.get("STAGE6_SKIP_PUPIL") is None:
         pass
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "stage6_personality_test.blend"))
     r = scene.render
     r.engine = 'CYCLES'; scene.cycles.device = 'CPU'; scene.cycles.samples = int(os.environ.get("STAGE6_SAMPLES", "48")); scene.cycles.use_denoising = True
     scene.cycles.use_adaptive_sampling = True; scene.cycles.adaptive_threshold = 0.03
@@ -1918,6 +1915,9 @@ if OUT:
     r.resolution_x, r.resolution_y, r.resolution_percentage = 1080, 1920, int(os.environ.get("STAGE6_PCT", "100"))
     r.image_settings.file_format = 'PNG'
     scene.view_settings.view_transform = 'AgX'; scene.view_settings.exposure = 0.0
+    r.resolution_percentage = 100; scene.camera = SHOTS[0][1]; scene.frame_set(F0)
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "stage6_personality_test.blend"))   # saved with the real settings
+    r.resolution_percentage = int(os.environ.get("STAGE6_PCT", "100"))
     if MODE6 == "stills":
         frames_to_render = [int(x) for x in os.environ.get("STAGE6_FRAMES", "1,49,62,84,118,144").split(",")]
     else:
@@ -1929,6 +1929,8 @@ if OUT:
         scene.frame_set(f)
         scene.camera = camera_for(f)
         r.filepath = os.path.join(OUT, "frames", f"f{f:04d}.png")
+        if MODE6 != "stills" and os.path.exists(r.filepath):
+            continue   # resume an interrupted batch
         bpy.ops.render.render(write_still=True)
         print(f"FRAME {f} {time.time()-t0:.1f}s", flush=True)
     print("ALL DONE", flush=True)
