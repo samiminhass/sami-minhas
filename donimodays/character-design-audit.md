@@ -383,3 +383,35 @@ second, vertical 9:16 at 540 by 960 pixels, silent.
 - **This is a single static camera.** A real short would cut between angles.
 - **The render is a preview.** It uses 20 samples with denoising at half resolution.
   A final render would use more samples and full 1080 by 1920.
+
+
+### Stage 6, final version
+
+The weak spots above were all addressed. The final video is
+`blender/renders/stage6/stage6_personality_test_final.mp4`: 6 seconds, 24 frames per
+second, full 1080 by 1920 vertical, 24 samples per pixel with denoising.
+
+| Weak spot | Fix |
+| --- | --- |
+| Nix too small to read | Two close shots: an insert on the touch, and a close-up on the innocent look |
+| Morrow's face too small | A close-up on the startle that follows its face through the hop |
+| Vesper's second hand barely moved | It rises to its collar as Vesper looks away, then makes a small dry gesture toward Nix |
+| One static camera | Six shots with cuts: wide, insert, close-up, medium, close-up, wide. Timeline markers carry the cuts into Blender |
+| Preview quality | Full resolution with more samples |
+
+**Two bugs found and fixed along the way.**
+
+- **Morrow's pupils disappeared when it looked to the side.** Its eye target sat
+  behind the head, and the pupils were built off the eye's forward axis. The
+  pupils rolled up to 97 degrees away from the face, into the dark face patch, on
+  122 of the 144 frames. The target now sits in front of the face, the pupils are
+  centred, and a rotation limit keeps them on the visible front of the eye. The
+  worst angle across the whole final video is 44.5 degrees. Vesper and Nix have no
+  pupils, so they could not have this problem.
+- **Nix's lids turned jagged in close-up.** The shape keys flattened individual
+  vertices. The lids are now live cuts driven by lid bones, clean at any setting.
+
+**Still worth knowing.** One shot, the insert, briefly shows the fragment before
+Nix arrives. That works as anticipation, but a cut on Nix's entrance could be
+tighter. Render time in this container is about a minute per frame, because there
+is no graphics card here.
