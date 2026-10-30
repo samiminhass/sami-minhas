@@ -474,6 +474,48 @@ def sleeve(name, coll, part, a, b, r1, r2, seg=28):
     bake_modifiers(ob)
     return ob
 
+# the broken-ring slot: the halo's shape cut right through the robe, so the body carries the idea in its
+# negative space (as Morrow's teardrop does). Same 104-346 degree arc as the halo, lined in antique gold.
+SLOT_Z, SLOT_R, SLOT_W = 0.98, 0.115, 0.024
+
+def _slot_band(c, r0, r1, y0, y1, t0=104, t1=346, seg=48, walls_only=False, ylim=None):
+    bm = bmesh.new(); rows = []
+    for i in range(seg + 1):
+        t = math.radians(t0 + (t1 - t0) * i / seg)
+        u = Vector((math.cos(t), 0, math.sin(t)))
+        lo, hi = ylim(t) if ylim else (y0, y1)
+        rows.append([bm.verts.new(c + u * r + Vector((0, y, 0))) for r, y in ((r0, lo), (r1, lo), (r1, hi), (r0, hi))])
+    for i in range(seg):
+        for j in ((1, 3) if walls_only else range(4)):
+            bm.faces.new((rows[i][j], rows[i][(j + 1) % 4], rows[i + 1][(j + 1) % 4], rows[i + 1][j]))
+    if not walls_only:
+        bm.faces.new(rows[0]); bm.faces.new(list(reversed(rows[-1])))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return bm
+
+def broken_ring_slot(coll, tag):
+    O = bpy.data.objects
+    c = spine(SLOT_Z) + Vector((0, 0, zmap(SLOT_Z)))
+    layers = [O[f"{tag}_{nm}"] for nm in ("core", "panel_back_calm", "mantle_crescent")]
+    # where the robe's front and back surfaces are, just outside the slot, so the lining fills exactly its depth
+    dg = bpy.context.evaluated_depsgraph_get()
+    trees = [BVHTree.FromObject(o, dg) for o in layers]
+    def ylim(t):
+        ys = []
+        for r in (SLOT_R - SLOT_W - 0.006, SLOT_R + SLOT_W + 0.006):
+            p0 = c + Vector((r * math.cos(t), 0, r * math.sin(t)))
+            for d in (1, -1):
+                hits = [tr.ray_cast(p0 + Vector((0, -d * 1.0, 0)), Vector((0, d, 0)))[0] for tr in trees]
+                hits = [h.y for h in hits if h is not None]
+                if hits:
+                    ys.append(min(hits) if d > 0 else max(hits))
+        front = min(ys) if ys else c.y - 0.15; back = max(ys) if ys else c.y + 0.15
+        return front + 0.001, back - 0.001
+    for o in layers:
+        boolean(o, finish("tmpCut", _slot_band(c, SLOT_R - SLOT_W, SLOT_R + SLOT_W, c.y - 0.6, c.y + 0.6), coll, "ves_mantle"))
+    finish(f"{tag}_slot_lining", _slot_band(c, SLOT_R - SLOT_W + 0.0015, SLOT_R + SLOT_W - 0.0015, 0, 0, walls_only=True, ylim=ylim),
+           coll, "ves_brass")
+
 def build_vesper(coll, P=None, tag="VES"):
     P = P or {}
     BEND[0] = P.get("bend", 0.0)
@@ -488,6 +530,8 @@ def build_vesper(coll, P=None, tag="VES"):
     # second audit pass: no shoulder capes. The hood sits close, so the outline is a sloped column and the
     # crescent sweep is the one big shape on the body
     surf(f"{tag}_hood", coll, "ves_collar", -62, 242, 1.04, 1.42, 0.03, 0.05, flare=0.0, xoff=0.03, petal=0.2)
+    if P.get("slot", False):      # the gold broken-ring slot: an option for the creator to choose, off by default
+        broken_ring_slot(coll, tag)
 
     neck_top = body_pt((0, -0.07, 0), 1.3)
     cylinder(f"{tag}_neck", coll, "ves_neck", body_pt((0, -0.02, 0), 1.2), neck_top, 0.05, 0.034)
@@ -1361,6 +1405,8 @@ def rig_vesper(root, tag="VES"):
     chain, pts = ["mantle_1", "mantle_2", "mantle_3"], sp
     for nm in ("core", "panel_back_calm", "mantle_crescent", "hood"):
         skin(O[f"{tag}_{nm}"], rig, chain, pts, blend=1.0)
+    if f"{tag}_slot_lining" in O:
+        skin(O[f"{tag}_slot_lining"], rig, chain, pts, blend=1.0)
     tm = to_mesh(O[f"{tag}_mantle_trim"]); skin(tm, rig, chain, pts, blend=1.0)
     bone_parent(O[f"{tag}_neck"], rig, "neck")
     for nm in ("mask",):
