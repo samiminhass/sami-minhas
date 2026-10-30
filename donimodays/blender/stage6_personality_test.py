@@ -1835,6 +1835,14 @@ SHOTS = [  # (first frame, camera)
     (111, make_cam("CAM_5_closeup_innocent", nix_118 + Vector((-0.005, 0, 0.0)), (-0.4, -1.0, 0.06), 0.3, lens=60, push=0.01, f_in=111, f_out=128)),
     (129, make_cam("CAM_6_wide_final", WIDE_T + Vector((0, 0, -0.02)), WIDE_V, 1.95, push=0.03, f_in=129, f_out=144)),
 ]
+# the startle close-up follows Morrow's face through the hop, then holds
+c3 = SHOTS[2][1]; v3 = Vector((-0.25, -1.0, 0.06)).normalized()
+d3 = (0.42 / 2) / math.tan(math.atan(12 / 60))
+c3.animation_data_clear()
+for f in (57, 59, 62, 70):
+    t3 = where("MOR_face", f) + Vector((0.0, 0, 0.04))
+    c3.location = t3 + v3 * d3; c3.rotation_euler = (-v3).to_track_quat('-Z', 'Y').to_euler()
+    c3.keyframe_insert("location", frame=f); c3.keyframe_insert("rotation_euler", frame=f)
 for f, c_ in SHOTS:                     # timeline markers bound to cameras, so the cuts also work in Blender
     mk = scene.timeline_markers.new(c_.name, frame=f); mk.camera = c_
 def camera_for(f):
