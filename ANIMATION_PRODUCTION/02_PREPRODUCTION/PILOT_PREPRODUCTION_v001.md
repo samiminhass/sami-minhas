@@ -130,9 +130,27 @@ Measured in this environment (4 CPU threads, no GPU):
 | Render | Time per frame |
 |---|---|
 | Workbench storyboard frame, 540 × 960 | about 1 s |
-| Cycles, bakery blockout, 1080 × 1920, 128 samples, denoised | RENDER_BENCH |
+| Cycles, bakery blockout, 1080 × 1920, 128 samples, denoised | **242 s** (set and proxies only, plain materials) |
 
-The final Cycles cost will rise with real characters, hair, subsurface skin and textures. The schedule should be set from a test render of the first animated shot, not from this number. Animating some moments on twos (Bible v0.5) would also halve the unique frames to render for those shots.
+**This is the studio's main production risk.** At 242 s a frame:
+
+| | Frames | Cycles CPU time |
+|---|---|---|
+| Footprints | 360 | about 24 h |
+| Mirror | 720 | about 48 h |
+| Display | 1,080 | about 73 h |
+| **All three pilots** | **2,160** | **about 145 h, roughly 6 days of continuous rendering** |
+
+That's before real characters, hair curves, subsurface skin and textures, which will raise the cost. It also assumes one render pass, with no re-renders after audit notes.
+
+**Options to bring it down** (to be tested on the first animated shot before choosing):
+1. **Fewer samples with denoising.** Try 32–48 samples and OpenImageDenoise; quality to be judged at phone size.
+2. **Background plates rendered once.** 20 of the 25 shots are locked off, so render each background once and render characters over it as separate layers.
+3. **Animating on twos** where the stop-motion feel suits (a Bible v0.5 option). This halves the unique frames in those shots.
+4. **EEVEE.** It's slow here only because there's no GPU. On any GPU machine it would be minutes per shot, not hours.
+5. **External GPU render capacity.** This is an EP decision with cost implications.
+
+**Recommendation:** run options 1–3 on the first shot once characters are released and measure the real time per frame. Bring the EP a schedule from that measurement. Option 5 stays open if the pilots need it.
 
 ## 8. Known limitations of v001
 

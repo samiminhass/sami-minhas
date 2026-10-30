@@ -24,6 +24,7 @@ Character Lab: please copy these into `STUDIO_DIRECTIVES/EP_DECISIONS.md`. The a
 | Bakery hero set (blockout) | `05_BLENDER/blockout/ENV_bakery_blockout_v001.blend` |
 | Pipeline scripts | `05_BLENDER/scripts/kestrava_blockout.py`, `make_boards.py`. Blender 5.2.3 LTS. |
 | Final animation | Blocked on character release (Mila, Borek, bunny) |
+| **Render capacity risk** | Cycles CPU: 242 s per 1080 × 1920 frame on the bare set. About 145 h for all three pilots before characters. Options are in package section 7. |
 
 ## Submission to the Audit Studio (Session 03)
 
