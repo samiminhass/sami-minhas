@@ -1249,12 +1249,13 @@ def rig_morrow(root, tag="MOR"):
         v = fc.driver.variables.new(); v.name = "l"; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["lid_lower_{k}"]'
         fc = drive(rig.pose.bones[f"brow_{k}"], "location", 2, "0.007*r", rig, [])
         v = fc.driver.variables.new(); v.name = "r"; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["brow_raise_{k}"]'
-        fc = drive(rig.pose.bones[f"brow_{k}"], "rotation_euler", 1, f"{sgn}*0.4*w", rig, [])
+        # +1 worry raises the INNER end (fixed: the sign was inverted, so worry read as anger)
+        fc = drive(rig.pose.bones[f"brow_{k}"], "rotation_euler", 1, f"{-sgn}*0.4*w", rig, [])
         v = fc.driver.variables.new(); v.name = "w"; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["brow_worry_{k}"]'
         for f in ("finger1", "finger2", "thumb"):
             nb = len([b for b in rig.data.bones if b.name.startswith(f"{f}_{k}_")])
             for i in range(nb):
-                fc = drive(rig.pose.bones[f"{f}_{k}_{i+1}"], "rotation_euler", 0, "-0.7*(g-0.45)", rig, [])
+                fc = drive(rig.pose.bones[f"{f}_{k}_{i+1}"], "rotation_euler", 0, "0.7*(g-0.45)", rig, [])   # + curls toward the palm
                 v = fc.driver.variables.new(); v.name = "g"; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["grip_{k}"]'
     add_prop(rig, "mouth_smile", 0, -1, 1, "Smile (+) or frown (-)")
     add_prop(rig, "mouth_width", 0, -1, 1, "Wide (+) or small (-)")
@@ -1266,7 +1267,8 @@ def rig_morrow(root, tag="MOR"):
         fc.driver.expression = expr
     add_prop(rig, "crest_mood", 1, -1, 1, "Emotional antenna: 1 raised (curious), 0 relaxed, -1 curled (frightened)")
     relax = [0.55, 0.35, 0.25, 0.2][:len(cp) - 1]
-    curl = [-0.55, -0.55, -0.65, -0.7][:len(cp) - 1]
+    # frightened: the crest folds back and down against the back of the head (net -0.7 .. -0.5 rad per joint)
+    curl = [-1.25, -0.95, -0.8, -0.7][:len(cp) - 1]
     for i in range(len(cp) - 1):
         fc = drive(rig.pose.bones[f"crest_{i+1}"], "rotation_euler", 0, f"{relax[i]}*(1-max(m,0)) + {curl[i]}*max(-m,0)", rig, [])
         v = fc.driver.variables.new(); v.name = "m"; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = '["crest_mood"]'
@@ -1771,6 +1773,88 @@ for off in ((0.5, 0, 0), (-0.5, 0, 0), (0, 0, 0.45), (0, 0, -0.45), (0.45, 0.2, 
 reset(mr_)
 ok = worst_ < 50; passed += ok; failed += (not ok)
 report(f"| morrow: pupils stay on the visible front of the eye at extreme gaze | worst {worst_:.1f} degrees from the face direction (limit 50) | {'PASS' if ok else 'FAIL'} |")
+# ---------------- direction tests: controls must move the RIGHT way, not just move
+report("\n## Direction tests\n")
+report("Each face and signature control is measured for the direction it moves, not just whether it moves.\n")
+report("| Test | Measured | Result |\n| --- | --- | --- |")
+O_ = bpy.data.objects
+def pts_(name):
+    return eval_coords(O_[name])
+def ctr(name):
+    return mean(pts_(name))
+def inner_minus_outer(prefix, face):
+    p = pts_(prefix); fx = ctr(face).x
+    p.sort(key=lambda v: abs(v.x - fx))
+    n_ = max(4, len(p) // 8)
+    return (sum(p[:n_], Vector()) / n_).z - (sum(p[-n_:], Vector()) / n_).z
+def corners_minus_middle(name):
+    p = pts_(name); xs = sorted(p, key=lambda v: v.x)
+    n_ = max(4, len(p) // 8)
+    ends = (sum(xs[:n_], Vector()) + sum(xs[-n_:], Vector())) / (2 * n_)
+    mid = sorted(p, key=lambda v: abs(v.x - ctr(name).x))[:n_]
+    return ends.z - (sum(mid, Vector()) / n_).z
+def width(name):
+    p = pts_(name); return max(v.x for v in p) - min(v.x for v in p)
+def top(name):
+    return max(v.z for v in pts_(name))
+def low(name):
+    return min(v.z for v in pts_(name))
+def tip_dist(fname, palm):
+    return (ctr(fname) - ctr(palm)).length
+DIR_TESTS = [
+    ("morrow", "brow_worry_L", 1, "inner end of left brow rises", lambda: inner_minus_outer("MOR_brow_L", "MOR_face"), +1),
+    ("morrow", "brow_worry_R", -1, "inner end of right brow drops (determination)", lambda: inner_minus_outer("MOR_brow_R", "MOR_face"), -1),
+    ("morrow", "brow_raise_L", 1, "left brow moves up", lambda: ctr("MOR_brow_L").z, +1),
+    ("morrow", "mouth_smile", 1, "mouth corners rise above the middle", lambda: corners_minus_middle("MOR_mouth"), +1),
+    ("morrow", "mouth_smile", -1, "mouth corners drop below the middle", lambda: corners_minus_middle("MOR_mouth"), -1),
+    ("morrow", "mouth_width", 1, "mouth gets wider", lambda: width("MOR_mouth"), +1),
+    ("morrow", "blink", 1, "upper lid comes down", lambda: low("MOR_lid_L"), -1),
+    ("morrow", "lid_lower_L", 1, "lower lid comes up", lambda: top("MOR_lowlid_L"), +1),
+    ("morrow", "crest_mood", -1, "crest tip drops when frightened", lambda: top("MOR_crest"), -1),
+    ("morrow", "grip_L", 1, "fingertips curl toward the palm", lambda: tip_dist("MOR_hand_L_fingertip1", "MOR_hand_L_palm"), -1),
+    ("vesper", "blink", 1, "upper lid comes down", lambda: low("VES_lid_L"), -1),
+    ("vesper", "brow_raise_L", 1, "left brow moves up", lambda: ctr("VES_brow_L").z, +1),
+    ("vesper", "grip_R", 1, "fingertips curl toward the palm", lambda: tip_dist("VES_hand_R_fingertip2", "VES_hand_R_palm"), -1),
+    ("nix", "lid_close", 1, "eye shape gets shorter", lambda: top("NIX_eye_L") - low("NIX_eye_L"), -1),
+    ("nix", "fin_A_flare", 1, "fin A swings outward from the body", lambda: (ctr("NIX_fin_A") - ctr("NIX_body")).length, +1),
+]
+for key, prop, val, desc, fn, sign in DIR_TESTS:
+    rig = RIGS[key][1]; reset(rig)
+    before = fn(); rig[prop] = float(val); upd(); after = fn(); reset(rig)
+    d_ = (after - before) * 1000
+    ok = d_ * sign > 0.2
+    passed += ok; failed += (not ok)
+    report(f"| {key}: {prop} = {val}: {desc} | {d_:+.2f} mm | {'PASS' if ok else 'FAIL'} |")
+
+# ---------------- every slider, both ends, must move something
+report("\n## Every slider at both ends\n")
+report("| Character | Sliders | Tested at min and max | Sliders that moved nothing | Result |\n| --- | --- | --- | --- | --- |")
+for key, (root, rig) in RIGS.items():
+    dead = []
+    parts = [o for o in part_objects(root) if o.type in {'MESH', 'CURVE'}]
+    reset(rig); base = {o.name: eval_coords(o) for o in parts}
+    props = [k for k in rig.keys() if isinstance(rig[k], float)]
+    for prop in props:
+        ui = rig.id_properties_ui(prop).as_dict()
+        for val in (ui.get("min", -1), ui.get("max", 1)):
+            reset(rig); rig[prop] = float(val); upd()
+            moved = 0.0
+            for o in parts:
+                now = eval_coords(o); b0 = base[o.name]
+                if len(now) == len(b0):
+                    moved = max(moved, max(((x - y).length for x, y in zip(now, b0)), default=0))
+                else:
+                    moved = max(moved, 1.0)
+            if moved * 1000 < 0.2:
+                dead.append(f"{prop}={val}")
+    reset(rig)
+    ok = not [d for d in dead if not d.endswith("=0.0") and not d.endswith("=0")]
+    # a slider whose default IS its minimum legitimately moves nothing at its minimum
+    real_dead = [d for d in dead if float(d.split("=")[1]) != DEFAULTS[rig.name].get(d.split("=")[0])]
+    ok = not real_dead
+    passed += ok; failed += (not ok)
+    report(f"| {key} | {len(props)} | {2 * len(props)} | {', '.join(real_dead) if real_dead else 'none'} | {'PASS' if ok else 'FAIL'} |")
+
 r_ = RIGS["vesper"][1]; reset(r_)
 r_.pose.bones["spine_2"].rotation_euler = (0.3, 0, 0); upd()
 d_ = (r_.pose.bones["mantle_2"].matrix.to_quaternion().rotation_difference(r_.pose.bones["spine_2"].matrix.to_quaternion())).angle

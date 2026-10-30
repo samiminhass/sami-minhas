@@ -1249,12 +1249,13 @@ def rig_morrow(root, tag="MOR"):
         v = fc.driver.variables.new(); v.name = "l"; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["lid_lower_{k}"]'
         fc = drive(rig.pose.bones[f"brow_{k}"], "location", 2, "0.007*r", rig, [])
         v = fc.driver.variables.new(); v.name = "r"; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["brow_raise_{k}"]'
-        fc = drive(rig.pose.bones[f"brow_{k}"], "rotation_euler", 1, f"{sgn}*0.4*w", rig, [])
+        # +1 worry raises the INNER end (fixed: the sign was inverted, so worry read as anger)
+        fc = drive(rig.pose.bones[f"brow_{k}"], "rotation_euler", 1, f"{-sgn}*0.4*w", rig, [])
         v = fc.driver.variables.new(); v.name = "w"; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["brow_worry_{k}"]'
         for f in ("finger1", "finger2", "thumb"):
             nb = len([b for b in rig.data.bones if b.name.startswith(f"{f}_{k}_")])
             for i in range(nb):
-                fc = drive(rig.pose.bones[f"{f}_{k}_{i+1}"], "rotation_euler", 0, "-0.7*(g-0.45)", rig, [])
+                fc = drive(rig.pose.bones[f"{f}_{k}_{i+1}"], "rotation_euler", 0, "0.7*(g-0.45)", rig, [])   # + curls toward the palm
                 v = fc.driver.variables.new(); v.name = "g"; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = f'["grip_{k}"]'
     add_prop(rig, "mouth_smile", 0, -1, 1, "Smile (+) or frown (-)")
     add_prop(rig, "mouth_width", 0, -1, 1, "Wide (+) or small (-)")
@@ -1266,7 +1267,8 @@ def rig_morrow(root, tag="MOR"):
         fc.driver.expression = expr
     add_prop(rig, "crest_mood", 1, -1, 1, "Emotional antenna: 1 raised (curious), 0 relaxed, -1 curled (frightened)")
     relax = [0.55, 0.35, 0.25, 0.2][:len(cp) - 1]
-    curl = [-0.55, -0.55, -0.65, -0.7][:len(cp) - 1]
+    # frightened: the crest folds back and down against the back of the head (net -0.7 .. -0.5 rad per joint)
+    curl = [-1.25, -0.95, -0.8, -0.7][:len(cp) - 1]
     for i in range(len(cp) - 1):
         fc = drive(rig.pose.bones[f"crest_{i+1}"], "rotation_euler", 0, f"{relax[i]}*(1-max(m,0)) + {curl[i]}*max(-m,0)", rig, [])
         v = fc.driver.variables.new(); v.name = "m"; v.type = 'SINGLE_PROP'; v.targets[0].id = rig; v.targets[0].data_path = '["crest_mood"]'

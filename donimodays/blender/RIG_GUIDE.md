@@ -105,7 +105,7 @@ is keyed. Stage 6 uses both.
 
 ## Test results
 
-**54 of 54 tests pass.**
+**72 of 72 tests pass,** including direction tests that check each face control moves the right way, and a sweep of every slider at both ends.
 
 - **Every control moves the part it controls.**
 - **Deformation stays within limits.** Every deforming part was measured in each
