@@ -17,3 +17,5 @@ bvenv/bin/python measure_stage6.py out.json ../../blender/stage6_personality_tes
 | `driver_check.py` | any blend | Whether drivers need Python auto-run |
 | `render_brow_worry.py` | rigged cast blend, output folder | Three small Cycles renders of Morrow's face |
 | `frame_difference.py` | folder holding `frames/f###.png` | Mean luminance change between video frames, to find cuts and pops |
+| `render_silhouette_turnaround.py` | rigged cast blend, output folder | Solid-black and clay renders of each character from four angles (only the silhouettes were used; the clay pass was overexposed) |
+| `list_materials.py` | rigged cast blend | Each character material's roughness, coat, thin film, and emission, with the parts that use it |
