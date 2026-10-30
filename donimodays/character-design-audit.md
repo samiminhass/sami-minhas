@@ -344,3 +344,42 @@ eclipse aubergine with ember rose. Morrow gains a celadon face it did not have.
 **Small notes.** Morrow's face and Nix's body have a light glaze-like gloss. If you
 want them more matte and "beautifully imperfect", lowering their coat setting is a
 one-line change.
+
+---
+
+## Stage 6 personality test
+
+Built by `blender/stage6_personality_test.py` from the stage 5 rigs. The video is
+`blender/renders/stage6/stage6_personality_test.mp4`: 6 seconds, 24 frames per
+second, vertical 1080 by 1920 format scaled to 540 by 960, silent.
+
+| Time | Beat | How it shows personality |
+| --- | --- | --- |
+| 0.0 to 1.7 s | Morrow notices the floating fragment, leans back, then takes two quick uneven steps with a balance wobble and reaches | Curious and cautious. The crest rises before the body moves |
+| 1.6 to 2.3 s | Nix darts in on a curve, stops dead, and touches the fragment first | Fast curved dart, then a motionless hover. The bead points at the fragment |
+| 2.3 to 3.0 s | The fragment flares and swells | The only new light in the scene, and it means something |
+| 2.4 to 3.0 s | Morrow startles: hops back, crest curls, arms hug its chest, ember lags | Its body gives away the fear it tries to hide |
+| 2.6 to 3.5 s | Vesper bows and lays one long hand over Morrow's head. The fragments swing into a shelter arc | Instinctive protection. The mantle trails the bow by a few frames |
+| 3.8 to 4.6 s | Vesper turns its head away. Its fragments wobble briefly | Pretending not to worry, with a tiny loss of composure |
+| 4.0 to 6.0 s | Nix drifts back, lids slant innocently, the bead points away, and it half turns edge-on. Vesper glances at Nix with one brow up. Morrow peeks out | A clear final reaction pose that reads without dialogue |
+
+### Quality check
+
+- **Silhouettes differ throughout.** The seed, the bowing column, and the crescent
+  stay distinct even when they overlap.
+- **Each character has one focal feature in motion.** The crest and ember for Morrow,
+  the fragments and hand for Vesper, the bead and eye cuts for Nix.
+- **No dialogue is needed.** The beats read from poses, timing, and the one flash.
+- **The movement styles differ.** Morrow is quick and uneven, Vesper slow with a long
+  hold, Nix darting with dead stops.
+
+### Weak spots in this test
+
+- **Nix is small in a vertical frame.** At phone size its lid cuts are hard to read,
+  and its innocent half turn is subtle. A closer insert shot would help.
+- **Morrow's expression changes are small at this framing.** The crest and body read
+  clearly, but the face would benefit from a closer camera.
+- **Vesper's second hand barely moves.** A small formal gesture would add life.
+- **This is a single static camera.** A real short would cut between angles.
+- **The render is a preview.** It uses 20 samples with denoising at half resolution.
+  A final render would use more samples and full 1080 by 1920.
