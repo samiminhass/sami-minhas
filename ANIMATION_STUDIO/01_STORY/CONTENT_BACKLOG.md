@@ -1,0 +1,22 @@
+# Short-Form Content Backlog
+
+Maintained by Session 02, Animation Studio. Fields follow `SHORT_FORM_DISTRIBUTION_DIRECTIVE.md` section 9.
+Full story detail for each entry is in `PILOT_CONCEPT_SLATE_v0.1.md`.
+
+**Status values**
+- Story: Concept, Gate 1 pending, Approved, Rejected
+- Production: Not started, Pre-production, Blocking, Animation, Lighting/Render, Sound/Edit, Complete
+- Audit: Not submitted, In review, Changes requested, Passed
+- Publishing: Not scheduled, Scheduled, Published (only once the platform confirms)
+
+| Episode ID | Working title | Characters | Premise | Intended emotion | Opening hook (0–2 s) | Story development | Visual payoff | Target duration | Complexity | Required assets | Story | Production | Audit | Publishing |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| P15-A | Footprints | Girl, Baker | Baker tracks small flour footprints to a lone bunny on his counter | Curiosity, delight | Tiny sneaker prints in flour; a clog lands beside them | He tracks the prints and has a nose-to-nose stand-off with the bunny | Tilt up the tall frame to the Girl on the shelf; a wildflower left as payment | 15 s | Low | Bakery set, flour decals, roll basket, wildflower | Gate 1 pending (recommended) | Not started | Not submitted | Not scheduled |
+| P15-B | Forecast | Girl, Baker | Rain drips on the bunny; the Baker holds his bread peel over her as an umbrella | Warmth, comedy | Raindrop hits the bunny's face | She pulls the bunny tighter; his mustache droops at the window | Bread peel as umbrella; he refuses to look at her | 15 s | Medium | Bakery exterior, awning, rain FX, bread peel | Gate 1 pending | Not started | Not submitted | Not scheduled |
+| P15-C | Customer | Girl, Baker | Her coin is too small, so the bunny becomes the customer | Comedy | Low angle of his crossed arms and glare | The bunny "looks" at him and he holds out | Bread hand-off to the bunny | 15 s | Low | Bakery interior, coin, loaf | Gate 1 pending | Not started | Not submitted | Not scheduled |
+| P30-A | Mirror | Girl, Baker | Girl wears her braid as a mustache and copies him; a gesture duel follows | Comedy, warmth | Girl to camera with braid mustache and scowl | Brow, mustache-stroke and chest-puff duel that escalates | She hands the bunny back the way he hands bread; his mustache lifts on its own | 30 s | Medium | Bakery doorway, square, loaf | Gate 1 pending (recommended) | Not started | Not submitted | Not scheduled |
+| P30-B | Knead | Girl, Baker | Angry dough-punching over a torn bunny; he teaches her to knead | Tenderness | Fists slam dough; flour bursts at the lens | His anger turns to understanding; kneading as a dance | Ear repaired with twine matching her braid cord | 30 s | Medium | Bakery, flour FX, bunny torn and repaired variants (change request) | Gate 1 pending | Not started | Not submitted | Not scheduled |
+| P30-C | Burnt (LORE) | Girl, Baker | He burns a loaf staring at an old photo; she eats it anyway | Bittersweet | Smoke rolls from the oven; he doesn't move | She defiantly eats charcoal crust | Both chewing terrible bread, neither stopping | 30 s | Medium | Bakery, smoke FX, charred loaf, photograph prop | Gate 1 pending, lore approval needed | Not started | Not submitted | Not scheduled |
+| P45-A | Display | Girl, Baker | Her lopsided gift loaf gets the place of honour in his window | Heart-warming | Small hands pull a lopsided loaf from a glowing oven in the dark | Bunny guards the loaf; he inspects it; we expect the bin | Lopsided loaf centred among perfect loaves, seen through the window | 45 s | Medium | Bakery (night, dawn, morning lighting), window display, flour sacks, loaves | Gate 1 pending (recommended) | Not started | Not submitted | Not scheduled |
+| P45-B | Downstream | Girl, Baker | Bunny lost in the stream; chase; the Baker rescues her | Tension, relief | Bunny falls through the tall frame toward the water | Bank chase, slip, cracking branch | Bunny drying on a bread peel among the loaves | 45 s | High | Old Bridge, stream with water sim, wet cloth and hair, bakery | Gate 1 pending | Not started | Not submitted | Not scheduled |
+| P45-C | The Little Door (LORE) | Girl, Baker | A tiny door appears by the oven; he knows it and hides it | Mystery | She knocks on a door the size of her bunny | He recognises it and covers it with flour sacks | Light and a wildflower slide out from under it at night | 45 s | Medium | Bakery, little door prop, night lighting | Gate 1 pending, lore approval needed | Not started | Not submitted | Not scheduled |
