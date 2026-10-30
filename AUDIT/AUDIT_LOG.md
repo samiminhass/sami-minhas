@@ -137,3 +137,37 @@ What's visible versus interpreted: measurements and pixel sizes below are taken 
 2. F2: the bunny stitch design sheet, then the 360 × 640 tester check.
 3. F3: Borek's mustache shape table now; the eight-expression blind test at facial blockout.
 4. Untested items carried forward to the blockout: turnaround consistency, accessory removal, neutral lighting, expressionless, and the 9:16 two-shot.
+
+---
+
+## AUD-001 R1 — Re-review of Character Bible v0.6
+
+| Field | Value |
+|---|---|
+| Version reviewed | `CHARACTER_BIBLE_v0.6.html` on `claude/dreamy-wozniak-qzx8c8`, commit `474fee9` |
+| Method | Full text diff against v0.5, arithmetic check of every new number, offline render of the redrawn diagram → `evidence/AUD-001/06_v0.6_staging_diagram_render.png` |
+| Date | 2026-10-30 |
+| **Approval status** | **PASS for entry to Blender blockout** (Mila and Borek). F1 is closed at document level. F2 and F3 design responses are accepted, and their acceptance tests run on blockout renders. |
+
+### Finding status
+
+| Finding | Status | Verification |
+|---|---|---|
+| F1 Head counts | **Closed (document)**; render retest pending | §3C, §4C and §8A now use crown-to-chin without hair, matching AUD-001. Checks: 1.15 m ÷ 3.7 = 0.31 m; 1.55 m ÷ 4 = 0.39 m; head ratio 1.25, inside the 1.1–1.3 measured range. With 4 cm of hair, Mila is 1.19 ÷ 0.35 ≈ 3.4 heads, which agrees. In the redrawn diagram, the heads measure ≈ 0.31 m and ≈ 0.39 m at its 200 px/m scale. Retest: front orthographic head-unit overlay, ±0.25 heads. |
+| F2 Stitch clue | **Design accepted**; tester retest pending | Bunny 0.30 m is ≈ 26 % of Mila's height (reference ≈ 29 %, consistent). At bunny = 15 % of a 640 px frame (96 px), a 3–4 cm X is ≈ 10–13 px and a 6 mm cord ≈ 2 px. The Lab's "≈ 8 px, 1.5 px" is conservative. Readability remains a prediction until tested. |
+| F3 Borek mustache | **Design accepted**; blind test pending | §4F gives eight distinct tip-angle/symmetry combinations. "Bristle" is used only for anger. Surprised (+70° V) and Confused (+45°/−30° seesaw) now differ by mustache shape. **Watch item:** Neutral (+20°) and Angry (0°, +20 % width) differ by only 20° of tip angle. The distinction rests on the straightened curls and the brows; the blind test must check this pair as well as Happy and Angry. |
+| M1–M5, M7 | **Closed** | Verified in the text diff and `STATUS.md` @ `474fee9` |
+| M6 | Carried to blockout | Listed in §8H |
+| M8 | Closed as flagged | Exception stated in §2; Pim's text marked as direction A until the EP decides |
+| O1, O2 | Adopted | Three stagings in §8A; hold guidance in §3C/§3D |
+
+### New observations (minor, not blocking)
+
+- **N1:** In the diagram's two-shot, Mila's hair still touches the left frame edge, and the "UI overlay (approx.)" label overlaps the frame border. This is cosmetic; the real test is the blockout two-shot.
+
+### Retests required with the blockout submission
+
+1. F1: head-unit overlay on front orthographic Workbench renders of both characters.
+2. F2: stitch tester check on a 360 × 640 render (medium shot and apron patch). This can follow the bunny build.
+3. F3: eight-expression blind test at the facial blockout, including the Neutral/Angry pair.
+4. Carried forward: turnaround consistency, accessory removal, neutral lighting, expressionless, M6 silhouettes, the three O1 two-shot stagings.
