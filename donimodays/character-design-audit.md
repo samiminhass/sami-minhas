@@ -351,7 +351,7 @@ one-line change.
 
 Built by `blender/stage6_personality_test.py` from the stage 5 rigs. The video is
 `blender/renders/stage6/stage6_personality_test.mp4`: 6 seconds, 24 frames per
-second, vertical 1080 by 1920 format scaled to 540 by 960, silent.
+second, vertical 9:16 at 540 by 960 pixels, silent.
 
 | Time | Beat | How it shows personality |
 | --- | --- | --- |
