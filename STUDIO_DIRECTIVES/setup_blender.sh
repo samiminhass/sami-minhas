@@ -7,7 +7,7 @@ VENV="${BLENDER_VENV:-$HOME/.blender-venv}"
 if [ ! -x "$VENV/bin/python" ]; then
   python3 -m venv "$VENV"
 fi
-"$VENV/bin/pip" install -q bpy==5.2.3
+"$VENV/bin/pip" install -q bpy==5.2.3 pillow
 
 # Software EGL lets EEVEE and Workbench render without a GPU.
 if ! ldconfig -p | grep -q libEGL.so.1; then
