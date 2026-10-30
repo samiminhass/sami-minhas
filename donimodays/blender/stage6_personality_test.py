@@ -1142,7 +1142,7 @@ def rig_morrow(root, tag="MOR"):
     B = [dict(name="root", head=(0, 0, 0), tail=(0, -0.08, 0)),
          dict(name="body", head=(0, -0.01, 0.1), tail=(0, -0.07, 0.46), parent="root", up=(0, -1, 0)),
          dict(name="ember", head=bbox_center(O[f"{tag}_ember"]), tail=bbox_center(O[f"{tag}_ember"]) + Vector((0, 0, 0.03)), parent="body"),
-         dict(name="eye_target", head=hit - n * 0.4, tail=hit - n * 0.4 + Vector((0, 0, 0.03)), parent="body")]
+         dict(name="eye_target", head=hit + n * 0.4, tail=hit + n * 0.4 + Vector((0, 0, 0.03)), parent="body")]   # in FRONT of the face
     for k in ("L", "R"):
         ec = bbox_center(O[f"{tag}_eye_{k}"])
         B += [dict(name=f"eye_{k}", head=ec, tail=ec + n * 0.03, parent="body", up=up),
@@ -1182,6 +1182,12 @@ def rig_morrow(root, tag="MOR"):
     bone_parent(O[f"{tag}_ember"], rig, "ember")
     for k in ("L", "R"):
         bone_parent(O[f"{tag}_eye_{k}"], rig, "body")
+        # re-centre the pupil on the eye's forward axis, so rotation limits keep it on the visible front
+        po = O[f"{tag}_pupil_{k}"]; eo = O[f"{tag}_eye_{k}"]
+        ec_ = sum((v.co for v in eo.data.vertices), Vector()) / len(eo.data.vertices)
+        r_e = max((v.co - ec_).length for v in eo.data.vertices)
+        pc_ = sum((v.co for v in po.data.vertices), Vector()) / len(po.data.vertices)
+        po.data.transform(Matrix.Translation(ec_ + n * r_e * 0.8 - pc_))
         bone_parent(O[f"{tag}_pupil_{k}"], rig, f"eye_{k}")
         bone_parent(O[f"{tag}_lid_{k}"], rig, f"lid_up_{k}")
         bone_parent(O[f"{tag}_lowlid_{k}"], rig, f"lid_low_{k}")
@@ -1201,6 +1207,11 @@ def rig_morrow(root, tag="MOR"):
         ik_arm(rig, k, f"forearm_{k}", f"hand_IK_{k}", f"upperarm_{k}", f"elbow_pole_{k}")
         cr = rig.pose.bones[f"hand_{k}"].constraints.new('COPY_ROTATION'); cr.target = rig; cr.subtarget = f"hand_IK_{k}"
         dt = rig.pose.bones[f"eye_{k}"].constraints.new('DAMPED_TRACK'); dt.target = rig; dt.subtarget = "eye_target"
+        # pupils may glance hard, but never roll past the visible front of the eyeball
+        lr = rig.pose.bones[f"eye_{k}"].constraints.new('LIMIT_ROTATION'); lr.owner_space = 'LOCAL'
+        lr.use_limit_x = lr.use_limit_z = True; lr.use_limit_y = False
+        lr.min_x, lr.max_x = math.radians(-24), math.radians(24)
+        lr.min_z, lr.max_z = math.radians(-30), math.radians(30)
     co = O[f"{tag}_crest"]; cm = to_mesh(co)
     skin(cm, rig, [f"crest_{i+1}" for i in range(len(cp) - 1)], cp, blend=0.5, min_bw=0.012)
     mo = O[f"{tag}_mouth"]; mm = to_mesh(mo)
@@ -1747,22 +1758,82 @@ kworld_aim(VR, f"hand_IK_{ves_side}", 78, over + Vector((0.0, 0.03, 0.05)), aim)
 kworld_aim(VR, f"hand_IK_{ves_side}", 84, over, aim)
 kworld_aim(VR, f"hand_IK_{ves_side}", F1, over + Vector((0, 0, 0.005)), aim)
 
+v_oth = "R" if ves_side == "L" else "L"
+scene.frame_set(F0)
+v_rest2 = (VR.matrix_world @ VR.pose.bones[f"hand_IK_{v_oth}"].matrix).to_translation()
+def ves_chest(f, side_off=0.0, fwd=0.2, up=0.27):
+    scene.frame_set(f)
+    m = VR.matrix_world @ VR.pose.bones["spine_3"].matrix
+    return m @ Vector((side_off, up, fwd))
+for f in (F0, 64):
+    kworld(VR, f"hand_IK_{v_oth}", f, v_rest2)
+kworld(VR, f"hand_IK_{v_oth}", 88, (VR.matrix_world @ VR.pose.bones[f"hand_IK_{v_oth}"].matrix).to_translation() if False else v_rest2)
+kworld(VR, f"hand_IK_{v_oth}", 98, ves_chest(98))                      # hand rises to its collar as it looks away
+kworld(VR, f"hand_IK_{v_oth}", 108, ves_chest(108, fwd=0.22))
+to_nix = (NIX_INNO - ves_chest(116)); to_nix.normalize()
+kworld(VR, f"hand_IK_{v_oth}", 118, ves_chest(118, fwd=0.26) + to_nix * 0.1)   # a small, dry open-palm gesture toward Nix
+kworld(VR, f"hand_IK_{v_oth}", 132, ves_chest(132, fwd=0.24) + to_nix * 0.07)
+kworld(VR, f"hand_IK_{v_oth}", F1, ves_chest(F1, fwd=0.23) + to_nix * 0.06)
+for f, v in ((96, 0.6), (100, 0.85), (114, 0.85), (118, 0.25), (F1, 0.3)):
+    kprop(VR, f"grip_{v_oth}", f, v)
+
 # ================================================================ STAGE 6: bake the follow-through
 frames = list(range(F0, F1 + 1))
 bake_follow_through(VR, frames, [("mantle_1", "spine_1"), ("mantle_2", "spine_2"), ("mantle_3", "spine_3")], delay=4, scale=1.0)
 bake_lag(MR, frames, "ember", "body", k=0.5, smooth=0.55)
 scene.frame_set(F0)
 
-# ================================================================ STAGE 6: camera
-cam.data.lens = 40; cam.data.sensor_fit = 'VERTICAL'; cam.data.sensor_height = 24
-target = Vector((-0.15, -0.1, 0.82))
-view = Vector((0.05, -1.0, 0.1)).normalized()
-vf = 2 * math.atan(12 / 40)
-dist = (2.02 / 2) / math.tan(vf / 2)
-for f, push in ((F0, 0.0), (F1, 0.1)):          # a very slow push-in
-    cam.location = target + view * (dist - push)
-    cam.rotation_euler = (-view).to_track_quat('-Z', 'Y').to_euler()
-    cam.keyframe_insert("location", frame=f); cam.keyframe_insert("rotation_euler", frame=f)
+# ================================================================ STAGE 6: cameras and cuts
+def make_cam(name, target, view, height, lens=40, push=0.0, f_in=F0, f_out=F1):
+    cd = bpy.data.cameras.new(name); c = bpy.data.objects.new(name, cd); C_CAM.objects.link(c)
+    cd.lens = lens; cd.sensor_fit = 'VERTICAL'; cd.sensor_height = 24
+    view = Vector(view).normalized()
+    dist = (height / 2) / math.tan(math.atan(12 / lens))
+    for f, pu in ((f_in, 0.0), (f_out, push)):
+        c.location = Vector(target) + view * (dist - pu)
+        c.rotation_euler = (-view).to_track_quat('-Z', 'Y').to_euler()
+        c.keyframe_insert("location", frame=f); c.keyframe_insert("rotation_euler", frame=f)
+    return c
+
+def where(ob_name, f):
+    scene.frame_set(f)
+    ob = bpy.data.objects[ob_name]
+    pts = [ob.matrix_world @ Vector(c_) for c_ in ob.bound_box]
+    return sum(pts, Vector()) / 8
+
+WIDE_T, WIDE_V = Vector((-0.15, -0.1, 0.82)), (0.05, -1.0, 0.1)
+morrow_face_62 = where("MOR_face", 62)
+nix_118 = where("NIX_body", 118)
+SHOTS = [  # (first frame, camera)
+    (1, make_cam("CAM_1_wide_notice", WIDE_T, WIDE_V, 2.02, push=0.08, f_in=1, f_out=38)),
+    (39, make_cam("CAM_2_insert_touch", Vector((-0.2, -0.22, 0.42)), (0.15, -1.0, 0.12), 0.86, lens=50, push=0.03, f_in=39, f_out=56)),
+    (57, make_cam("CAM_3_closeup_startle", morrow_face_62 + Vector((0.0, 0, 0.04)), (-0.25, -1.0, 0.06), 0.42, lens=60, push=0.0, f_in=57, f_out=70)),
+    (71, make_cam("CAM_4_medium_shelter", Vector((-0.02, -0.05, 0.86)), (0.1, -1.0, 0.1), 1.55, lens=45, push=0.06, f_in=71, f_out=110)),
+    (111, make_cam("CAM_5_closeup_innocent", nix_118 + Vector((0.01, 0, 0.0)), (-0.12, -1.0, 0.06), 0.34, lens=60, push=0.01, f_in=111, f_out=128)),
+    (129, make_cam("CAM_6_wide_final", WIDE_T + Vector((0, 0, -0.02)), WIDE_V, 1.95, push=0.03, f_in=129, f_out=144)),
+]
+for f, c_ in SHOTS:                     # timeline markers bound to cameras, so the cuts also work in Blender
+    mk = scene.timeline_markers.new(c_.name, frame=f); mk.camera = c_
+def camera_for(f):
+    return [c_ for f0, c_ in SHOTS if f0 <= f][-1]
+scene.camera = SHOTS[0][1]
+scene.frame_set(F0)
+
+# ================================================================ STAGE 6: pupil check on every frame
+def mean_eval(ob):
+    dg = bpy.context.evaluated_depsgraph_get(); oe = ob.evaluated_get(dg); me = oe.to_mesh()
+    c_ = sum((oe.matrix_world @ v.co for v in me.vertices), Vector()) / len(me.vertices); oe.to_mesh_clear(); return c_
+worst_pupil = (0, 0)
+for f in range(F0, F1 + 1):
+    scene.frame_set(f)
+    for k in ("L", "R"):
+        ny = (MR.matrix_world.to_3x3() @ MR.data.bones[f"eye_{k}"].matrix_local.col[1].xyz)
+        bm_ = MR.matrix_world @ MR.pose.bones["body"].matrix
+        ny = (bm_.to_3x3() @ (MR.pose.bones["body"].bone.matrix_local.to_3x3().inverted() @ (MR.matrix_world.to_3x3().inverted() @ ny))).normalized()
+        a_ = math.degrees((mean_eval(bpy.data.objects[f"MOR_pupil_{k}"]) - mean_eval(bpy.data.objects[f"MOR_eye_{k}"])).angle(ny))
+        if a_ > worst_pupil[0]:
+            worst_pupil = (a_, f)
+print(f"PUPIL CHECK worst {worst_pupil[0]:.1f} degrees at frame {worst_pupil[1]}", flush=True)
 scene.frame_set(F0)
 
 # ================================================================ STAGE 6: render
@@ -1771,9 +1842,11 @@ if OUT:
     os.makedirs(os.path.join(OUT, "frames"), exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "stage6_personality_test.blend"))
     r = scene.render
-    r.engine = 'CYCLES'; scene.cycles.device = 'CPU'; scene.cycles.samples = 20; scene.cycles.use_denoising = True
+    r.engine = 'CYCLES'; scene.cycles.device = 'CPU'; scene.cycles.samples = int(os.environ.get("STAGE6_SAMPLES", "48")); scene.cycles.use_denoising = True
+    scene.cycles.use_adaptive_sampling = True; scene.cycles.adaptive_threshold = 0.03
+    r.use_persistent_data = True
     scene.cycles.max_bounces = 4; scene.cycles.diffuse_bounces = 2; scene.cycles.glossy_bounces = 2; scene.cycles.transmission_bounces = 4
-    r.resolution_x, r.resolution_y, r.resolution_percentage = 540, 960, 100
+    r.resolution_x, r.resolution_y, r.resolution_percentage = 1080, 1920, int(os.environ.get("STAGE6_PCT", "100"))
     r.image_settings.file_format = 'PNG'
     scene.view_settings.view_transform = 'AgX'; scene.view_settings.exposure = 0.0
     frames_to_render = [int(x) for x in os.environ.get("STAGE6_FRAMES", "1,49,62,84,118,144").split(",")] if MODE6 == "stills" else list(range(F0, F1 + 1))
@@ -1781,6 +1854,7 @@ if OUT:
     for f in frames_to_render:
         t0 = time.time()
         scene.frame_set(f)
+        scene.camera = camera_for(f)
         r.filepath = os.path.join(OUT, "frames", f"f{f:04d}.png")
         bpy.ops.render.render(write_still=True)
         print(f"FRAME {f} {time.time()-t0:.1f}s", flush=True)

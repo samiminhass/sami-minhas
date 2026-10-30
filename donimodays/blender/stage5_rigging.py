@@ -1142,7 +1142,7 @@ def rig_morrow(root, tag="MOR"):
     B = [dict(name="root", head=(0, 0, 0), tail=(0, -0.08, 0)),
          dict(name="body", head=(0, -0.01, 0.1), tail=(0, -0.07, 0.46), parent="root", up=(0, -1, 0)),
          dict(name="ember", head=bbox_center(O[f"{tag}_ember"]), tail=bbox_center(O[f"{tag}_ember"]) + Vector((0, 0, 0.03)), parent="body"),
-         dict(name="eye_target", head=hit - n * 0.4, tail=hit - n * 0.4 + Vector((0, 0, 0.03)), parent="body")]
+         dict(name="eye_target", head=hit + n * 0.4, tail=hit + n * 0.4 + Vector((0, 0, 0.03)), parent="body")]   # in FRONT of the face
     for k in ("L", "R"):
         ec = bbox_center(O[f"{tag}_eye_{k}"])
         B += [dict(name=f"eye_{k}", head=ec, tail=ec + n * 0.03, parent="body", up=up),
@@ -1182,6 +1182,12 @@ def rig_morrow(root, tag="MOR"):
     bone_parent(O[f"{tag}_ember"], rig, "ember")
     for k in ("L", "R"):
         bone_parent(O[f"{tag}_eye_{k}"], rig, "body")
+        # re-centre the pupil on the eye's forward axis, so rotation limits keep it on the visible front
+        po = O[f"{tag}_pupil_{k}"]; eo = O[f"{tag}_eye_{k}"]
+        ec_ = sum((v.co for v in eo.data.vertices), Vector()) / len(eo.data.vertices)
+        r_e = max((v.co - ec_).length for v in eo.data.vertices)
+        pc_ = sum((v.co for v in po.data.vertices), Vector()) / len(po.data.vertices)
+        po.data.transform(Matrix.Translation(ec_ + n * r_e * 0.8 - pc_))
         bone_parent(O[f"{tag}_pupil_{k}"], rig, f"eye_{k}")
         bone_parent(O[f"{tag}_lid_{k}"], rig, f"lid_up_{k}")
         bone_parent(O[f"{tag}_lowlid_{k}"], rig, f"lid_low_{k}")
@@ -1201,6 +1207,11 @@ def rig_morrow(root, tag="MOR"):
         ik_arm(rig, k, f"forearm_{k}", f"hand_IK_{k}", f"upperarm_{k}", f"elbow_pole_{k}")
         cr = rig.pose.bones[f"hand_{k}"].constraints.new('COPY_ROTATION'); cr.target = rig; cr.subtarget = f"hand_IK_{k}"
         dt = rig.pose.bones[f"eye_{k}"].constraints.new('DAMPED_TRACK'); dt.target = rig; dt.subtarget = "eye_target"
+        # pupils may glance hard, but never roll past the visible front of the eyeball
+        lr = rig.pose.bones[f"eye_{k}"].constraints.new('LIMIT_ROTATION'); lr.owner_space = 'LOCAL'
+        lr.use_limit_x = lr.use_limit_z = True; lr.use_limit_y = False
+        lr.min_x, lr.max_x = math.radians(-24), math.radians(24)
+        lr.min_z, lr.max_z = math.radians(-30), math.radians(30)
     co = O[f"{tag}_crest"]; cm = to_mesh(co)
     skin(cm, rig, [f"crest_{i+1}" for i in range(len(cp) - 1)], cp, blend=0.5, min_bw=0.012)
     mo = O[f"{tag}_mouth"]; mm = to_mesh(mo)
@@ -1721,6 +1732,17 @@ for key, (root, rig) in RIGS.items():
     missing = [n for n in ctrl if rig.pose.bones[n].custom_shape is None]
     ok = not missing; passed += ok; failed += (not ok)
     report(f"| {key}: every control bone has a viewport widget | {len(ctrl)} controls, {len(missing)} missing | {'PASS' if ok else 'FAIL'} |")
+mr_ = RIGS["morrow"][1]; reset(mr_)
+hit_, n_ = raycast(bpy.data.objects["MOR_torso"], (0.012, -1, 0.43), (0, 1, 0))
+worst_ = 0
+for off in ((0.5, 0, 0), (-0.5, 0, 0), (0, 0, 0.45), (0, 0, -0.45), (0.45, 0.2, 0.3), (-0.45, 0.2, -0.3)):
+    place(mr_, "eye_target", off); upd()
+    for k in ("L", "R"):
+        e_ = mean(eval_coords(bpy.data.objects[f"MOR_eye_{k}"])); p_ = mean(eval_coords(bpy.data.objects[f"MOR_pupil_{k}"]))
+        worst_ = max(worst_, math.degrees((p_ - e_).angle(n_)))
+reset(mr_)
+ok = worst_ < 50; passed += ok; failed += (not ok)
+report(f"| morrow: pupils stay on the visible front of the eye at extreme gaze | worst {worst_:.1f} degrees from the face direction (limit 50) | {'PASS' if ok else 'FAIL'} |")
 r_ = RIGS["vesper"][1]; reset(r_)
 r_.pose.bones["spine_2"].rotation_euler = (0.3, 0, 0); upd()
 d_ = (r_.pose.bones["mantle_2"].matrix.to_quaternion().rotation_difference(r_.pose.bones["spine_2"].matrix.to_quaternion())).angle

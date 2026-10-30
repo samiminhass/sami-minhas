@@ -101,7 +101,7 @@ is keyed. Stage 6 uses both.
 
 ## Test results
 
-**53 of 53 tests pass.**
+**54 of 54 tests pass.**
 
 - **Every control moves the part it controls.**
 - **Deformation stays within limits.** Every deforming part was measured in each
@@ -109,6 +109,7 @@ is keyed. Stage 6 uses both.
   is 1.41 and the worst compression is 0.70. The limits are 1.8 and 0.5.
 - **The elbow poles leave the rest pose in place.** The largest drift is 0.07 millimetres.
 - **Every control bone has a viewport widget.**
+- **Morrow's pupils stay on the visible front of the eye** at extreme gaze: at most 47 degrees from straight ahead, under the 50 degree limit.
 - **The mantle follow bones match the spine exactly** when no delay is baked.
 
 ## Known limits
