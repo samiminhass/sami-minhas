@@ -1,15 +1,19 @@
 # donimodays: Channel Bible
 
+This replaces the earlier Donimo, Pip, and Old Tock cast. The current cast is
+Morrow, Vesper, and Nix, built in Blender (see `blender/`). The earlier cast remains
+in this file's git history.
+
 ## The big idea
 
-Every video is **one day in the life of Donimo**, a living domino tile who wants to
-understand everything about Earth, people, and the future.
+**In this world, forgotten dreams become physical objects, and broken moments drift
+through the air.** Every video is one small encounter with one of those objects, told
+in 15 to 45 seconds, mostly without dialogue.
 
-This one character ties every topic together. Comedy, motivation, mystery, future,
-exploration, and daily news all become "Donimo's days". Viewers subscribe for the
-character, not just the topic.
+The channel name stays: every episode is one of Morrow's days, the days of a
+small creature that collects dreams.
 
-**Tagline:** *One push. Big day.*
+**Tagline:** *Every forgotten dream lands somewhere.*
 
 ## Format rules
 
@@ -17,161 +21,92 @@ character, not just the topic.
 | --- | --- |
 | Aspect ratio | 9:16 vertical, 1080 x 1920 |
 | Length | 15 to 45 seconds |
-| Shots per video | 5 to 10, each 3 to 6 seconds |
-| Hook | Something surprising in the first 2 seconds |
-| Captions | Always on, big and centered |
-| Ending | Payoff, twist, or cliffhanger. Never a slow fade |
-| Visual style | Stylized 3D animation, soft cinematic lighting, bright colors |
+| Shots per video | 4 to 8, cut on action |
+| Hook | Something strange or tender in the first 2 seconds |
+| Dialogue | Little or none. Sound, posture, and faces carry the story |
+| Ending | A held reaction pose of at least 1.5 seconds |
+| Look | Surreal storybook meets tactile cinematic 3D. Neutral studio first, the dream world for story |
 
-## Characters
+## The cast
 
-![Donimo, Pip, and Old Tock](images/cast-hero.png)
+Full design notes, rig controls, and test results are in `blender/RIG_GUIDE.md`,
+`character-design-audit.md`, and `audit/character-audit-session2.md`.
 
-### The design idea
+### Morrow, the protagonist
 
-**donimodays sounds like "domino days".** So the whole world is built on dominoes:
-one small push starts a chain reaction. Every episode is one domino falling into the
-next. That gives the channel a symbol nobody else has, and a story engine that fits
-every topic: one small action, big consequences.
+A small porcelain seed with a crescent-shaped hole through its body. A loose amber
+ember floats inside the hole and shows what Morrow feels. Gold-mended cracks show
+it has been broken before.
 
-### Visual style: "Dusk Lo-Fi"
+- **Personality:** curious, stubborn, easily startled, unexpectedly brave.
+- **Contradiction:** collects frightening dreams because it is afraid of being forgotten.
+- **Signature moves:** a lean before every move, quick uneven steps, a crest that
+  rises when curious and folds back when afraid, an ember that lags behind sudden moves.
+- **Palette:** porcelain `#ECE3D3`, celadon face `#22403E`, apricot `#E59B74`,
+  amber ember `#FFB04A`, kintsugi gold `#C9A15E`.
 
-The channel always looks like the magic hour just after sunset: soft, warm, a little
-dreamy. Characters feel like premium vinyl collectible toys.
+### Vesper, the guardian
 
-| Element | Rule |
-| --- | --- |
-| Sky | Deep indigo at the top, fading through plum and rose to peach at the horizon |
-| Light | Warm sunset key light from behind, cool blue fill from the front, pink rim light on edges |
-| Glow | Only eyes, pips, and Pip glow. Everything else stays matte |
-| Materials | Matte porcelain, soft knit fabric, brushed brass. Never shiny plastic |
-| Finish | Light film grain and a soft dark vignette on every frame |
-| Brand motif | A line of cream and navy dominoes somewhere in the background |
+A tall, formal figure of overlapping midnight panels. Its dark stone face floats inside
+a broken antique-gold halo. Three fragments of the halo orbit it.
 
-| Color | Hex | Used for |
-| --- | --- | --- |
-| Ink navy | `#1B1F3B` | Donimo's back, limbs, deep shadows |
-| Warm cream | `#E9D6B8` | Donimo's face, sneakers |
-| Coral | `#FF6B57` | Beanie, accents, mood pips |
-| Mint glow | `#6FF7D2` | Donimo's eyes, Pip |
-| Brass gold | `#D8A657` | Divider line, Old Tock |
-| Olive | `#55613A` | Old Tock's coat |
-| Dusk plum | `#3A2547` | Ground and shadows |
+- **Personality:** patient, overly formal, quietly funny, anxious about making mistakes.
+- **Contradiction:** it can preserve a moment, but cannot bring back the people who
+  lived in it.
+- **Signature moves:** slow weight shifts and long pauses. A deep bow with one long
+  hand that shelters. Fragments that swing into a shelter or go uneven when it loses
+  composure.
+- **Palette:** ink slate `#1B2130`, heather `#5B4757`, antique gold `#B08A52`,
+  graphite stone `#3B3838`, dove mauve hands `#8E8089`.
 
-### Donimo (main character)
+### Nix, the troublemaker
 
-![Donimo expressions](images/donimo-expressions.png)
+A tiny floating crescent with a round bite missing. A coral line runs along its inner
+edge, and an "attention bead" orbits through its open centre.
 
-Donimo is a **living domino tile** who woke up one morning and decided to explore
-the world, one day at a time.
-
-- **Look:** a tall rounded domino tile. Cream porcelain front, ink-navy back speckled
-  with tiny stars. A thin brass line divides the face. The top half has two glowing
-  mint eyes set into dark sockets. The bottom half has glowing pips.
-- **Signature detail, the mood pips:** the pips on Donimo's belly change with his mood.
-  One pip means shocked, two means sleepy or sad, three means calm, six means
-  hyped. Eye shapes change too: dots, happy arcs, shocked rings, sleepy lines.
-- **Outfit:** a slouchy coral knit beanie tilted to one side, cream sneakers with
-  coral soles.
-- **Personality:** curious, brave, a little clumsy. He tips over when surprised,
-  like a domino, then catches himself.
-- **Catchphrase:** "One push. Big day."
-
-Prompt block:
-
-> Donimo, a cute living domino tile character, tall rounded rectangle body, matte
-> warm cream porcelain front and ink navy back with tiny star speckles, thin brushed
-> brass line across the middle of the face, two large glowing mint-green round eyes
-> set in dark circular sockets in the upper half, glowing coral domino pips on the
-> lower half, soft pink blush cheeks, slouchy coral knit beanie with cream pom-pom
-> tilted to one side, slim ink navy arms and legs, cream mitten hands, cream
-> sneakers with coral soles, designer vinyl toy aesthetic
-
-### Pip (sidekick)
-
-Pip is **one of Donimo's pips that escaped** and came alive: a tiny glowing orb that
-floats beside him, trailing sparkles. It never speaks. It blinks, changes color, and
-zips around. Mint means happy, amber means curious, red means danger.
-
-Prompt block:
-
-> Pip, a tiny floating glowing orb the size of a tennis ball, clear glass shell with
-> a bright mint-green light core inside, two small dark dot eyes, a short trail of
-> fading glowing sparkles behind it, soft light bloom
-
-![Old Tock and Pip](images/old-tock-and-pip.png)
-
-### Old Tock (mentor)
-
-Old Tock is a **wandering gentleman with an antique pocket watch for a head**. He has
-seen every day there ever was, and he knows that every moment counts.
-
-- **Look:** a brass pocket-watch head with a cream clock face, two softly glowing
-  amber eyes, and clock hands that move with his expressions. A crown and ring sit on
-  top like a tiny hat. He wears a long olive wool coat with brass buttons, a dusty
-  rose scarf, dark trousers, worn leather boots, and carries a thin cane.
-- **Personality:** calm, kind, speaks slowly. His clock hands tick when he thinks.
-- **Catchphrase:** "Every second is a domino."
-
-Prompt block:
-
-> Old Tock, a tall gentle character with an antique brass pocket watch for a head,
-> cream clock face with fine tick marks, two softly glowing amber eyes on the clock
-> face, clock hands in the center, small brass crown and ring on top of the head,
-> long olive green wool coat with brass buttons, dusty rose knit scarf, dark navy
-> trousers, worn brown leather boots, thin dark wooden cane, designer vinyl toy
-> aesthetic
-
-### Style line for every prompt
-
-Add this to the end of every image and video prompt:
-
-> stylized 3D animation, designer vinyl toy aesthetic, dusk lo-fi mood, magic hour
-> after sunset, indigo to peach gradient sky, warm rim light, soft volumetric haze,
-> gentle glow on eyes only, matte materials, subtle film grain, shallow depth of
-> field, cinematic, vertical 9:16
+- **Personality:** fearless, nosy, theatrical, and secretly afraid of being ignored.
+- **Contradiction:** it steals the spotlight, but turns edge-on to disappear when
+  someone pays it real attention.
+- **Signature moves:** fast curved darts, then a dead-still hover. Its bead points
+  at whatever it wants.
+- **Palette:** eclipse `#1D1424`, lilac pearl eyes `#E8E3EE`, ember rose edge `#FF7A5C`.
 
 ## Series
 
-Each topic gets its own named series. Put the series name in the title and on the
-first frame so viewers learn to recognize it.
+The topics stay the same. Each becomes a format for this cast.
 
-| Topic | Series name | Formula |
+| Topic | Series | Formula |
 | --- | --- | --- |
-| Comedy | **Donimo Tries** | Donimo tries a normal human thing and it goes hilariously wrong |
-| Motivation | **Old Tock Says** | Donimo is stuck or sad, Old Tock gives one simple lesson |
-| Mystery | **Donimo Investigates** | A real unsolved mystery, three facts, end on a question |
-| Future | **Year 2099** | Donimo shows what one everyday thing might look like in the future |
-| Exploration | **Donimo Goes** | Donimo visits an amazing real place: deep sea, Mars, a volcano |
-| Daily news | **Donimo Daily** | One real, interesting news story or fact in 30 seconds |
+| Comedy | **Nix Touched It** | Nix touches a dream object first, and the others deal with what happens |
+| Motivation | **Vesper Keeps** | Morrow loses heart. Vesper shows it a preserved moment that changes its mind |
+| Mystery | **The Lost Dream** | A strange dream object lands. Three clues about whose dream it was. End on a question |
+| Future | **Tomorrow's Dream** | A dream about the future drifts in, and the cast reacts to what it shows |
+| Exploration | **Morrow Wanders** | Morrow follows a drifting moment to a new corner of the dream world |
+| Daily news | **Dream Report** | One real, true fact, delivered as a dream object Morrow finds |
 
 ## Weekly schedule
 
 | Day | Series |
 | --- | --- |
-| Monday | Old Tock Says |
-| Tuesday | Donimo Tries |
-| Wednesday | Donimo Investigates |
-| Thursday | Year 2099 |
-| Friday | Donimo Tries |
-| Saturday | Donimo Goes |
-| Sunday | Donimo Daily |
-
-Comedy gets two days because it usually spreads fastest on Shorts.
+| Monday | Vesper Keeps |
+| Tuesday | Nix Touched It |
+| Wednesday | The Lost Dream |
+| Thursday | Tomorrow's Dream |
+| Friday | Nix Touched It |
+| Saturday | Morrow Wanders |
+| Sunday | Dream Report |
 
 ## Production checklist for every video
 
-1. Write the script and shot list.
-2. Generate each shot as a separate clip using the character prompt blocks.
-3. Generate 3 or 4 versions of each shot and keep the best one.
-4. Record or generate the voice lines.
-5. Add music and sound effects.
-6. Edit, add captions, and check the first 2 seconds grab attention.
-7. Upload as a Short with the series name in the title.
-8. In YouTube's upload settings, check the altered or synthetic content setting.
+1. Write a beat sheet: what each character wants, what goes wrong, and the final held pose.
+2. Block it with the rigs in `blender/cast_rigged_v05.blend`, using controls only.
+3. Check the faces at phone size (about 180 by 320 pixels).
+4. Run the follow-through bakes: Vesper's mantle and Morrow's ember.
+5. Render the cuts, add sound, and add captions only if the story needs them.
+6. In YouTube's upload settings, check the altered or synthetic content setting.
 
 ## Rules for news, mystery, and exploration episodes
 
 - Check every fact against at least two reliable sources before publishing.
-- Clearly separate facts from Donimo's guesses or jokes.
-- Never make AI footage look like real news footage of a real event.
+- Clearly separate facts from the characters' play.
+- Never make the dream world look like real news footage of a real event.
